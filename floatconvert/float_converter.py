@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Tuple
+from typing import Tuple, List
 
 
 class FloatConverter(ABC):
@@ -14,5 +14,5 @@ class FloatConverter(ABC):
 
     @property
     @abstractmethod
-    def tokens(self) -> list[str]:
+    def tokens(self) -> List[str]:
         pass

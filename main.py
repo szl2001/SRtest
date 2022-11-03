@@ -7,9 +7,10 @@ from floatconvert.fp16_converter import FP16Converter
 from points_gen import PointsGen
 import pickle
 
+from multiprocessing import Pool
 
-def generate_expr(seed: int, num: int):
-    rng = np.random.RandomState(seed)
+def generate_expr(num: int):
+    rng = np.random.default_rng()
     cfg = GenConfig(
         list(E2EVar),
         {E2EBiOp.add: 1, E2EBiOp.sub: 1, E2EBiOp.mul: 1},
@@ -26,7 +27,7 @@ def generate_expr(seed: int, num: int):
 
     datasets = []
     for _ in range(num):
-        input_dim = rng.randint(1, 10)
+        input_dim = rng.integers(1, 10)
         tree = tree_generator.sample_tree(input_dim)
         # print(tree)
 
@@ -42,7 +43,16 @@ def generate_expr(seed: int, num: int):
         datasets.append((tree, points))
     return datasets
 
+def worker(task_id):
+    data = generate_expr(5)
+    with open(f"data{task_id}.pkl", "wb") as f:
+        pickle.dump(data, f)
 
-data = generate_expr(42, 5)
-with open("dataset.pkl", "wb") as f:
-    pickle.dump(data, f)
+def main():
+    pool = Pool(32)
+    pool.map(worker, range(10))
+    pool.close()
+    pool.join()
+
+if __name__ == "__main__":
+    main()

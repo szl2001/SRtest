@@ -13,7 +13,7 @@ class PointsGen:
         # sort variables by name
         free_vars = sorted(free_vars, key=lambda v: int(v.name[1:]))
         
-        inps = self.rng.rand(len(free_vars), num)
+        inps = self.rng.random((len(free_vars), num))
         f = lambdify(free_vars, sympy_expr, "numpy")
         out = f(*inps)
 
