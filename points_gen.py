@@ -1,10 +1,10 @@
 import numpy as np
-from numpy.random import RandomState
+from numpy.random import Generator
 from sympy import lambdify
 
 class PointsGen:
 
-    def __init__(self, rng: RandomState):
+    def __init__(self, rng: Generator):
         self.rng = rng
 
     def mk_points(self, num: int, sympy_expr):

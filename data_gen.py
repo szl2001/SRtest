@@ -3,7 +3,7 @@ from itertools import chain
 from typing import List, Tuple, Dict
 from e2elang.opcode import E2EBiOp
 from exprtree.expr import Node, BinaryOp, UnaryOp, Variable
-from numpy.random import RandomState
+from numpy.random import Generator
 import numpy as np
 
 
@@ -23,7 +23,7 @@ class GenConfig:
 
 class TreeGen:
 
-    def __init__(self, cfg: GenConfig, rng: RandomState):
+    def __init__(self, cfg: GenConfig, rng: Generator):
         self.cfg = cfg
         self.rng = rng
 
