@@ -7,8 +7,8 @@ from e2elang.string_visitor import StringVisitor
 from floatconvert.fp16_converter import FP16Converter
 from pathlib import Path
 
-source_dir = Path("")
-target_dir = Path("")
+source_dir = Path("/lustre/S/nanziyuan/codes/srasm/data/SRmaker/dataset/raw_tree/")
+target_dir = Path("/lustre/S/nanziyuan/codes/srasm/data/SRmaker/dataset/plain_tensor/")
 
 
 def worker(task_id):
@@ -18,9 +18,11 @@ def worker(task_id):
     float_converter = FP16Converter()
     str_vis = StringVisitor(float_converter)
     expr_vocab = build_vocab_from_iterator(
-        str_vis.tokens(), specials=["<PAD>", "<EOS>"])
+        [str_vis.tokens()], specials=["<PAD>", "<EOS>"])
     points_vocab = build_vocab_from_iterator(
-        float_converter.tokens(), specials=["<PAD>"])
+        [float_converter.tokens()], specials=["<PAD>"])
+
+    eos = torch.tensor([expr_vocab["<EOS>"]])
 
     encode_arr = np.vectorize(float_converter.encode)
 
@@ -28,20 +30,21 @@ def worker(task_id):
     for tree, points in data:
         sentence = expr_vocab(list(str_vis.visit(tree)))
         assert len(sentence) <= 128
-        sen_tensor = torch.tensor(sentence)
+        # coincide with End-to-End
+        sen_tensor = torch.cat((eos, torch.tensor(sentence), eos))
 
         for point in points:
             # point.shape: ((input_dim + 1), num_points)
             # flatten by columns and transform to tensor
-            point_ids = points_vocab(encode_arr(point.flatten("F")))
-            point_tensor = torch.tensor(point_ids.flatten("F"))
+            point_tokens = encode_arr(point.flatten("F")).tolist()
+            point_tensor = torch.tensor(points_vocab(point_tokens))
 
             datasets.append((sen_tensor, point_tensor))
 
     torch.save(datasets, target_dir / f"tensor{task_id}.pt")
     if task_id == 0:
-        torch.save(expr_vocab, target_dir / "expr_vocab.pkl")
-        torch.save(points_vocab, target_dir / "points_vocab.pkl")
+        torch.save(expr_vocab, target_dir / "expr_vocab.pt")
+        torch.save(points_vocab, target_dir / "points_vocab.pt")
 
 
 def main():
