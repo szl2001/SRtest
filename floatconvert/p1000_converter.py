@@ -23,7 +23,6 @@ class P1000Converter(FloatConverter):
         exponent = int(lst[2][1:])
         return ldexp(mantissa, exponent)
 
-    @property
     def tokens(self):
         if self._tokens is None:
             self._tokens = [

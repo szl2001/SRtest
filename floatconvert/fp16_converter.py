@@ -32,7 +32,6 @@ class FP16Converter(FloatConverter):
         exponent = int(exponent_str)
         return ldexp(mantissa, exponent)
 
-    @property
     def tokens(self):
         if self._tokens is None:
             self._tokens = [

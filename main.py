@@ -9,6 +9,7 @@ import pickle
 
 from multiprocessing import Pool
 
+
 def generate_expr(num: int):
     rng = np.random.default_rng()
     cfg = GenConfig(
@@ -30,29 +31,29 @@ def generate_expr(num: int):
         input_dim = rng.integers(1, 10)
         tree = tree_generator.sample_tree(input_dim)
         # print(tree)
-
         # strs = str_vis.visit(tree)
         # print(" ".join(list(strs)))
 
         sym_expr = sym_vis.visit(tree)
-        num_points = 200
-        points = [points_generator.mk_points(
-            num_points, sym_expr) for _ in range(10)]
+        points = [points_generator.mk_points(200, sym_expr) for _ in range(10)]
         # print(points)
 
         datasets.append((tree, points))
     return datasets
 
+
 def worker(task_id):
-    data = generate_expr(5)
+    data = generate_expr(1000)
     with open(f"data{task_id}.pkl", "wb") as f:
         pickle.dump(data, f)
 
+
 def main():
     pool = Pool(32)
-    pool.map(worker, range(10))
+    pool.map(worker, range(100))
     pool.close()
     pool.join()
+
 
 if __name__ == "__main__":
     main()

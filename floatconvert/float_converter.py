@@ -12,7 +12,6 @@ class FloatConverter(ABC):
     def decode(self, lst: Tuple) -> float:
         pass
 
-    @property
     @abstractmethod
     def tokens(self) -> List[str]:
         pass

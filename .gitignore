@@ -1,2 +1,6 @@
 __pycache__/
 .vscode/
+dataset/
+*.slurm
+*.out
+*.err

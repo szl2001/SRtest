@@ -55,4 +55,4 @@ class StringVisitor(Visitor):
         return list(chain(self.binary_op_map.values(),
                           self.unary_op_map.values(),
                           self.var_map.values(),
-                          self.floatEncoder.tokens))
+                          self.floatEncoder.tokens()))
