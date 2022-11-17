@@ -19,7 +19,7 @@ class FP16Converter(FloatConverter):
         sign = "+" if val >= 0 else "-"
         mantissa, exponent = frexp(val)
         assert exponent >= -100 and exponent <= 100
-        mantissa = "{:.4f}".format(mantissa)[-4:]
+        mantissa = "{:.6f}".format(mantissa)[-6:]
         exponent = "E{}".format(exponent)
         return (f"{sign}{mantissa}{exponent}")
 
@@ -28,7 +28,7 @@ class FP16Converter(FloatConverter):
         if token in self.inv_inf_map:
             return (self.inv_inf_map[token])
         mantissa_str, exponent_str = token.split("E")
-        mantissa = int(mantissa_str) / 1e4
+        mantissa = int(mantissa_str) / 1e6
         exponent = int(exponent_str)
         return ldexp(mantissa, exponent)
 

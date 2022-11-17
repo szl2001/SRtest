@@ -35,3 +35,25 @@ class E2EVar(Variable):
     x8 = auto()
     x9 = auto()
     x10 = auto()
+
+
+binary_op_map = {
+    E2EBiOp.add: "add",
+    E2EBiOp.mul: "mul",
+    E2EBiOp.sub: "sub"
+}
+
+unary_op_map = {
+    E2EUnOp.abs: "abs",
+    E2EUnOp.atan: "atan",
+    E2EUnOp.cos: "cos",
+    E2EUnOp.exp: "exp",
+    E2EUnOp.inv: "inv",
+    E2EUnOp.log: "log",
+    E2EUnOp.sin: "sin",
+    E2EUnOp.sqr: "sqr",
+    E2EUnOp.sqrt: "sqrt",
+    E2EUnOp.tan: "tan"
+}
+
+var_map = dict([(v, f"x{v.value}") for v in list(E2EVar)])

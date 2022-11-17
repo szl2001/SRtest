@@ -34,7 +34,7 @@ def worker(task_id):
             # point.shape: ((input_dim + 1), num_points)
             # flatten by columns and transform to tensor
             point_ids = points_vocab(encode_arr(point.flatten("F")))
-            point_tensor = torch.tensor(point_ids.flatten("F"))
+            point_tensor = torch.tensor(point_ids)
 
             datasets.append((sen_tensor, point_tensor))
 

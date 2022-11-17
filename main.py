@@ -11,7 +11,7 @@ from multiprocessing import Pool
 
 
 def generate_expr(num: int):
-    rng = np.random.default_rng()
+    rng = np.random.default_rng(3245)
     cfg = GenConfig(
         list(E2EVar),
         {E2EBiOp.add: 1, E2EBiOp.sub: 1, E2EBiOp.mul: 1},
@@ -29,6 +29,7 @@ def generate_expr(num: int):
     datasets = []
     for _ in range(num):
         input_dim = rng.integers(1, 10)
+        input_dim = 10
         tree = tree_generator.sample_tree(input_dim)
         # print(tree)
         # strs = str_vis.visit(tree)
