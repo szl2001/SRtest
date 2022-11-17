@@ -6,39 +6,44 @@ class FP16Converter(FloatConverter):
 
     def __init__(self):
         self._tokens = None
-        self.inf_map = {
-            np.nan: "nan",
-            np.inf: "inf",
-            np.NINF: "-inf"
-        }
-        self.inv_inf_map = {v: k for k, v in self.inf_map.items()}
 
     def encode(self, val):
-        if val in self.inf_map.keys():
-            return (self.inf_map[val])
+        if np.isnan(val):
+            return ("nan")
         sign = "+" if val >= 0 else "-"
+        if np.isinf(val):
+            return (f"{sign}inf")
         mantissa, exponent = frexp(val)
-        assert exponent >= -100 and exponent <= 100
-        mantissa = "{:.6f}".format(mantissa)[-6:]
-        exponent = "E{}".format(exponent)
-        return (f"{sign}{mantissa}{exponent}")
+        if exponent < -25:
+            return ("-inf")
+        elif exponent > 24:
+            return ("+inf")
+        else:
+            mantissa = "{:.2f}".format(mantissa)[-2:]
+            exponent = "E{}".format(exponent)
+            return (f"{sign}{mantissa}{exponent}")
 
     def decode(self, lst):
         token = lst[0]
-        if token in self.inv_inf_map:
-            return (self.inv_inf_map[token])
-        mantissa_str, exponent_str = token.split("E")
-        mantissa = int(mantissa_str) / 1e6
-        exponent = int(exponent_str)
-        return ldexp(mantissa, exponent)
+        if token == "nan":
+            return np.nan
+        elif token == "+inf":
+            return np.inf
+        elif token == "-inf":
+            return np.NINF
+        else:
+            mantissa_str, exponent_str = token.split("E")
+            mantissa = int(mantissa_str) / 100
+            exponent = int(exponent_str)
+            return ldexp(mantissa, exponent)
 
     def tokens(self):
         if self._tokens is None:
             self._tokens = [
                 f"{sign}{mantissa}{exponent}"
                 for sign in ["+", "-"]
-                for mantissa in ["{:04d}".format(i) for i in range(10000)]
-                for exponent in ["E{}".format(i) for i in range(-100, 101)]
+                for mantissa in ["{:02d}".format(i) for i in range(100)]
+                for exponent in ["E{}".format(i) for i in range(-25, 25)]
             ]
-            self._tokens += self.inf_map.values()
+            self._tokens += ["nan", "+inf", "-inf"]
         return self._tokens
