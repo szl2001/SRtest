@@ -1,53 +1,58 @@
 from multiprocessing import Pool
 import pickle
 import torch
-import torch.nn.functional as F
+from torchtext.vocab import build_vocab_from_iterator
 import numpy as np
-from e2elang.string_visitor import StringVisitor
-from floatconvert.fp16_converter import FP16Converter
+from e2elang.srasm_visitor import SRasmVisitor
+from floatconvert.fp16_base10_converter import FP16Base10Converter
+from pathlib import Path
 
+source_dir = Path("/lustre/S/nanziyuan/codes/srasm/data/SRmaker/dataset/raw_tree/")
+target_dir = Path("/lustre/S/nanziyuan/codes/srasm/data/SRmaker/dataset/srasm/")
+
+PAD = "<PAD>"
+EOS = "<EOS>"
 
 def worker(task_id):
-    with open(f"data{task_id}.pkl", "rb") as f:
+    with open(source_dir / f"data{task_id}.pkl", "rb") as f:
         data = pickle.load(f)
 
-    float_converter = FP16Converter()
-    str_vis = StringVisitor(float_converter)
+    float_converter = FP16Base10Converter()
+    asm_vis = SRasmVisitor(float_converter)
+    tokens = [asm_vis.tokens()]
+    op_vocab = build_vocab_from_iterator(tokens, specials=[PAD, EOS])
 
-    tokens = str_vis.tokens()
-    token_map = {token: idx for idx, token in enumerate(tokens)}
+    pad = torch.tensor([op_vocab["<PAD>"]])
+    eos = torch.tensor([op_vocab["<EOS>"]])
+    nil = torch.tensor([0])
 
-    float_tokens = float_converter.tokens()
-    # Convention: {<PAD>: 0}
-    float_map = {token: idx + 1 for idx, token in enumerate(float_tokens)}
-
-    encode_arr = np.vectorize(lambda x: float_map[float_converter.encode(x)])
+    encode_arr = np.vectorize(float_converter.encode)
 
     datasets = []
-    for tree, points in data:
-        sentence = [token_map[t] for t in str_vis.visit(tree)]
-        sentence.append(token_map["<EOS>"])
-        assert len(sentence) <= 128
-        # padright = (0, 128 - len(sentence))
-        # sen_tensor = F.pad(torch.tensor(sentence), padright, "constant", 0)
-        sen_tensor = torch.tensor(sentence)
+    for tree, points_set in data:
+        instrs = asm_vis.visit(tree)
+        assert len(instrs) <= 128
 
-        for point in points:
-            # point.shape: ((input_dim + 1), num_points)
-            arr = encode_arr(point)
-            # padright = (0, 200 - arr.shape[1])
-            # arr_tensor = F.pad(torch.tensor(arr), padright, "constant", 0)
+        ops, operand0s, operand1s = zip(*instrs)
 
-            arr_tensor = torch.tensor(arr.flatten("F"))
+        # coincide with End-to-End
+        ops = torch.cat((pad, torch.tensor(ops), eos))
+        operand0s = torch.cat((nil, torch.tensor(operand0s), nil))
+        operand1s = torch.cat((nil, torch.tensor(operand1s), nil))
+        
+        for points in points_set:
+            # points.shape: ((1 + input_dim), num_points)
+            points = torch.tensor(points)
+            datasets.append((ops, operand0s, operand1s, points))
 
-            datasets.append((sen_tensor, arr_tensor))
-
-    torch.save(datasets, f"srasm{task_id}.pt")
+    torch.save(datasets, target_dir / f"tensor{task_id}.pt")
+    if task_id == 0:
+        torch.save(op_vocab, target_dir / "op_vocab.pt")
 
 
 def main():
     pool = Pool(32)
-    pool.map(worker, range(10))
+    pool.map(worker, range(100))
     pool.close()
     pool.join()
 

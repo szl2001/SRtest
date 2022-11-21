@@ -61,9 +61,11 @@ class SRasmInterpreter:
             assert instr[1] == instr[2]
             val = dispatch_unop(rev_unop[op], self.env[instr[1]])
         elif op in rev_var:
-            idx = rev_var[op].value - 1
-            print(idx)
-            val = self.vars[rev_var[op].value - 1]
+            idx = rev_var[op].value
+            # print(idx)
+            val = self.vars[rev_var[op].value]
+        elif op == "Y":
+            val = self.vars[0]
         else:
             num = self.floatDecoder.decode([op])
             val = np.full_like(self.env[0], num)
@@ -77,22 +79,20 @@ class SRasmInterpreter:
     def get_result(self):
         return self.env[-1]
 
-    def execute(self, instrs):
-        for instr in instrs:
-            self.execute_one(instr)
-
-    def to_sympy_expr(self, instrs):
-        ans = []
-        for instr in instrs:
-            op = instr[0]
-            if op in rev_biop:
-                left, right = instr[1], instr[2]
-                ans.append(Node(rev_biop[op], ans[left], ans[right]))
-            elif op in rev_unop:
-                left = instr[1]
-                ans.append(Node(rev_unop[op], ans[left]))
-            elif op in rev_var:
-                ans.append(Node(rev_var[op]))
-            else:
-                ans.append(Node(self.floatDecoder.decode([op])))
-        return ans[-1]
+def to_sympy_expr(instrs, floatDecoder):
+    ans = []
+    for instr in instrs:
+        op = instr[0]
+        if op in rev_biop:
+            left, right = instr[1], instr[2]
+            ans.append(Node(rev_biop[op], ans[left], ans[right]))
+        elif op in rev_unop:
+            left = instr[1]
+            ans.append(Node(rev_unop[op], ans[left]))
+        elif op in rev_var:
+            ans.append(Node(rev_var[op]))
+        elif op == "Y":
+            ans.append(Node(None))
+        else:
+            ans.append(Node(floatDecoder.decode([op])))
+    return ans[-1]

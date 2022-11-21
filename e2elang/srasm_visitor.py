@@ -31,13 +31,13 @@ class SRasmVisitor:
 
         def getId(n):
             if isinstance(n.ty, E2EVar):
-                return vars.index(n.ty)
+                return vars.index(n.ty) + 1
             else:
-                return nodes.index(n) + len(vars)
+                return nodes.index(n) + len(vars) + 1
 
-        instrs = []
+        instrs = [("Y", 0, 0)]
         for v in vars:
-            instrs.append((var_map[v], -1, -1))
+            instrs.append((var_map[v], 0, 0))
         for n in nodes:
             ty = n.ty
             if isinstance(ty, E2EBiOp):
@@ -48,7 +48,7 @@ class SRasmVisitor:
             elif isinstance(ty, E2EVar):
                 assert False, "VarNode should not exist here"
             else:
-                instr = (self.floatEncoder.encode(ty), -1, -1)
+                instr = (self.floatEncoder.encode(ty), 0, 0)
 
             instrs.append(instr)
 

@@ -25,20 +25,23 @@ sym_vis = SympyVisitor()
 sym0 = sym_vis.visit(a[0][0])
 # print(sym0)
 
-from e2elang.srasm_interpreter import SRasmInterpreter
+from e2elang.srasm_interpreter import SRasmInterpreter, to_sympy_expr
 srasm_inter = SRasmInterpreter(fp)
 points = a[0][1][0]
 # print(points)
 y = points[0]
 xs = points[1:]
-xs = xs.astype("float64")
+points = points.astype("float64")
 vars = []
-for x in xs:
+for x in points:
     vars.append(x)
 # print(len(vars))
 srasm_inter.init_vars(vars)
-srasm_inter.execute(ans)
-nodex = srasm_inter.to_sympy_expr(ans)
+print("start")
+for instr in ans:
+    print(len(srasm_inter.env))
+    srasm_inter.execute_one(instr)
+nodex = to_sympy_expr(ans, fp)
 res = srasm_inter.get_result()
 
 
@@ -81,13 +84,13 @@ close = np.isclose(y3, y)
 print(np.sum(close))
 print(r2_score(y3, y))
 
-print(res)
-print(y)
-print(yy)
-print(y3)
+#print(res)
+#print(y)
+#print(yy)
+#print(y3)
 
-print(sym1)
-print(sym2)
+#print(sym1)
+#print(sym2)
 
 str_expr = str(sym1)
 
@@ -153,7 +156,7 @@ def visit2(node):
     elif isinstance(node.ty, E2EVar):
         return xs[node.ty.value-1]
     else:
-        val = node.ty
+        val = np.full((200,), node.ty)
     env.append(val)
     return val
 
@@ -164,10 +167,34 @@ close = np.isclose(y6, res)
 print(np.sum(close))
 print(r2_score(y6, res))
 
-penv = srasm_inter.env[10:]
+print("Y6 & y")
+close = np.isclose(y6, y)
+# print(close)
+print(np.sum(close))
+print(r2_score(y6, y))
+
+penv = srasm_inter.env[11:]
 print(len(penv))
 print(len(env))
-assert len(penv) == len(env)
-#for i, (x, y) in enumerate(zip(penv, env)):
-#    print(i, end=" ")
-#    print(x == y)
+# assert len(penv) == len(env)
+for i, (x, y) in enumerate(zip(penv, env)):
+    assert (x == y).all(), f"{i}th value not equal"
+
+exit(0)
+
+from e2elang.srasm_simulator import execute
+mem = vars
+for instr in ans:
+    execute(instr, mem, fp)
+y7 = mem[-1]
+print("Y7 & res")
+close = np.isclose(y7, res)
+# print(close)
+print(np.sum(close))
+print(r2_score(y7, res))
+
+print("Y7 & y")
+close = np.isclose(y7, y)
+# print(close)
+print(np.sum(close))
+print(r2_score(y7, y))
