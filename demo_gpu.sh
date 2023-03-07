@@ -82,9 +82,9 @@ echo "Use GPU ${CUDA_VISIBLE_DEVICES}"                              # which gpus
 #/workspace/S/liyutai/anaconda3/envs/nrs/bin/python reduce.py
 
 #RNN
-/workspace/S/liyutai/anaconda3/envs/nrs/bin/python expression_handle.py
+#/workspace/S/liyutai/anaconda3/envs/nrs/bin/python expression_handle.py
 #/workspace/S/liyutai/anaconda3/envs/nrs/bin/python expression_feature.py
-#/workspace/S/liyutai/anaconda3/envs/nrs/bin/python rnn_mix.py
+/workspace/S/liyutai/anaconda3/envs/nrs/bin/python sample.py
 
 #- End
 echo "Job end at $(date "+%Y-%m-%d %H:%M:%S")"

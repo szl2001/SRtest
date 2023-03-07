@@ -37,11 +37,23 @@ def handle(field, path, save):
             vars.append(line[f'v{j+1}_name'])
             #scope[line[f'v{j+1}_name']] = [(line[f'v{j+1}_low'], line[f'v{j+1}_high'], line[f'v{j+1}_type'])]
             if line[f'v{j+1}_type'] == 'I':
+                names['x'+str(j)] = sympy.Symbol(line[f'v{j+1}_name'],integer=True, positive=True)
+                names['w'+str(j)] = sympy.Wild(line[f'v{j+1}_name'],exclude=[sin,cos,sympy.exp,tan,sinh,cosh,tanh,log,Pow],integer=True,positive=True)
+            elif line[f'v{j+1}_type'] == 'F':
+                names['x'+str(j)] = sympy.Symbol(line[f'v{j+1}_name'],real=True,positive=True)
+                names['w'+str(j)] = sympy.Wild(line[f'v{j+1}_name'],exclude=[sin,cos,sympy.exp,tan,sinh,cosh,tanh,log,Pow],real=True,positive=True)
+            elif line[f'v{j+1}_type'] == 'AI':
                 names['x'+str(j)] = sympy.Symbol(line[f'v{j+1}_name'],integer=True)
                 names['w'+str(j)] = sympy.Wild(line[f'v{j+1}_name'],exclude=[sin,cos,sympy.exp,tan,sinh,cosh,tanh,log,Pow],integer=True)
-            elif line[f'v{j+1}_type'] == 'F':
+            elif line[f'v{j+1}_type'] == 'AF':
                 names['x'+str(j)] = sympy.Symbol(line[f'v{j+1}_name'],real=True)
                 names['w'+str(j)] = sympy.Wild(line[f'v{j+1}_name'],exclude=[sin,cos,sympy.exp,tan,sinh,cosh,tanh,log,Pow],real=True)
+            elif line[f'v{j+1}_type'] == 'NI':
+                names['x'+str(j)] = sympy.Symbol(line[f'v{j+1}_name'],integer=True, positive=False)
+                names['w'+str(j)] = sympy.Wild(line[f'v{j+1}_name'],exclude=[sin,cos,sympy.exp,tan,sinh,cosh,tanh,log,Pow],integer=True,positive=False)
+            elif line[f'v{j+1}_type'] == 'NF':
+                names['x'+str(j)] = sympy.Symbol(line[f'v{j+1}_name'],real=True,positive=False)
+                names['w'+str(j)] = sympy.Wild(line[f'v{j+1}_name'],exclude=[sin,cos,sympy.exp,tan,sinh,cosh,tanh,log,Pow],real=True,positive=False)
             else:
                 raise ValueError("Blank type!")
             
@@ -94,22 +106,60 @@ def handle(field, path, save):
                             exp = exp.subs(line[f'v{j+1}_name'], names['x'+str(j)])
                             d=exp.match(eq_w)
 
+                        tmp_after = after[l[3]-1].copy()
                         for j in range(0, int(l[1])):
-                            var = str(l[4][j])[0:-1]
-                            new_min = d[l[4][j]].subs(min_scope)
-                            new_max = d[l[4][j]].subs(max_scope)
+                            #var = str(l[4][j])[0:-1]
+                            new_min = (d[l[4][j]].subs(min_scope)).evalf()
+                            new_max = (d[l[4][j]].subs(max_scope)).evalf()
+
+                            try:
+                                if float(new_min) > float(new_max):
+                                    n = new_min
+                                    new_min = new_max
+                                    new_max = n
+                            except:
+                                for t in range(0, int(l[1])):
+                                    if new_min.has(names['x'+str(j)]) and new_max.has(names['x'+str(j)]):
+                                        if not names['x'+str(j)].is_positive == None:
+                                            if new_max < new_min:
+                                                n = new_min
+                                                new_min = new_max
+                                                new_max = n
+                                                break
+                                        else:
+                                            n1 = (new_min.subs(min_scope)).evalf()
+                                            n2 = (new_min.subs(max_scope)).evalf()
+                                            n3 = (new_max.subs(max_scope)).evalf()
+                                            n4 = (new_max.subs(min_scope)).evalf()
+                                            n = [float(n1), float(n2), float(n3), float(n4)]
+                                            new_max = n[n.index(max(n))]
+                                            new_min = n[n.index(min(n))]
+                                            break
                             #l[3][var].append((new_min,new_max))
+                            if new_max == new_min:
+                                repeat = 0
+                                break
+                            
                             if d[l[4][j]].is_integer:
                                 t = 'I'
                             else:
                                 t = 'F'
-                            st = line[f'v{j+1}_sample_type']
+                            
+                            if new_min != 0:
+                                st = line[f'v{j+1}_sample_type']
+                            else:
+                                st = 'u'
 
-                            after[l[3]-1][f'v{j+1}_type'] += ('&' + t)
-                            after[l[3]-1][f'v{j+1}_sample_type'] += ('&' + st)
-                            after[l[3]-1][f'v{j+1}_low'] = str(after[l[3]-1][f'v{j+1}_low']) + '&'+ str(new_min)
-                            after[l[3]-1][f'v{j+1}_high'] = str(after[l[3]-1][f'v{j+1}_high']) + '&'+ str(new_max)
-                        break
+                            tmp_after[f'v{j+1}_type'] += ('&' + t)
+                            tmp_after[f'v{j+1}_sample_type'] += ('&' + st)
+                            tmp_after[f'v{j+1}_low'] = str(tmp_after[f'v{j+1}_low']) + '&'+ str(new_min)
+                            tmp_after[f'v{j+1}_high'] = str(tmp_after[f'v{j+1}_high']) + '&'+ str(new_max)
+                        
+                        if repeat == 1:
+                            after[l[3]-1] = tmp_after
+                            break
+                        else:
+                            continue
                 
             if repeat == 0:
                 picked = picked + 1
@@ -128,9 +178,9 @@ def add(path, save):
     collection.to_csv(save,index=None)
 
 if __name__ == "__main__":
-    #handle('phy','real/phy.csv','real/phy_.csv')
+    handle('phy','real/phy.csv','real/phy_.csv')
     handle('che','real/che.csv','real/che_.csv')
-    #handle('bio','real/bio.csv','real/bio_.csv')
+    handle('bio','real/bio.csv','real/bio_.csv')
     #add('real/bio.csv','real/bio.csv')
     #add('real/phy.csv','real/phy.csv')
     #add('real/che.csv','real/che.csv')
