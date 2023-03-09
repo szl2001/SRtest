@@ -29,6 +29,8 @@ class SRasmInterpreter:
                 return lchild * rchild
             elif op == E2EBiOp.sub:
                 return lchild - rchild
+            elif op == E2EUnOp.sqr:
+                return np.power(lchild, rchild)
 
         def dispatch_unop(op, lchild):
             if op == E2EUnOp.abs:
@@ -45,8 +47,6 @@ class SRasmInterpreter:
                 return np.log(lchild)
             elif op == E2EUnOp.sin:
                 return np.sin(lchild)
-            elif op == E2EUnOp.sqr:
-                return lchild * lchild
             elif op == E2EUnOp.sqrt:
                 return np.sqrt(lchild)
             elif op == E2EUnOp.tan:

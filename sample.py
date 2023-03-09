@@ -16,12 +16,13 @@ def sample(path, n, save):
         ulog_span += pre_data[1]
     
     u_span = round(ulog_span/ulog_num)
-    print(u_span)
+    #print(u_span)
     for i, line in collection.iterrows():
         r = dict()
 
         pre_data = pre_handle(line, n, u_span)
         X, Y = get_points(pre_data[0], pre_data[1], pre_data[2], pre_data[3], u_span)
+        
 
         r['X'] = X
         r['Y'] = Y
@@ -58,8 +59,15 @@ def span_cal(line):
                 if sympy.sympify(min_scope[j][i]).subs(min_s).evalf() == 0:
                     print(line['Number'])
                     raise ValueError("ulog min 0!")
+                while not (sympy.sympify(max_scope[j][i]).is_real and sympy.sympify(min_scope[j][i]).is_real):
+                    max_scope[j][i] = sympy.sympify(max_scope[j][i]).subs(max_s)
+                    min_scope[j][i] = sympy.sympify(min_scope[j][i]).subs(min_s)
+
                 ulog_num += 1
                 ulog_span += sympy.log(sympy.sympify(max_scope[j][i]).subs(max_s)/sympy.sympify(min_scope[j][i]).subs(min_s),10).evalf()
+                #print(line['Number'])
+                #print(max_s,min_s)
+                #print(ulog_span)
 
     return ulog_num, ulog_span
 
@@ -102,12 +110,18 @@ def pre_handle(line, n, u_span):
             max_s[f'V_{i+1}'].append((line[f'v{j+1}_name'],sympy.sympify(max_scope[i])))
             min_s[f'V_{i+1}'].append((line[f'v{j+1}_name'],sympy.sympify(min_scope[i])))
 
-    print(line['Number'])
-    print(vars)
-    print(scope)
+    #print(line['Number'])
+    #print(vars)
+    #print(scope)
     #for j in range(0,n_var):
     #    print(scope[f'V_{i+1}'][j][1], scope[f'V_{i+1}'][j][0])
-    v = [np.prod([sympy.log(float(sympy.sympify(scope[f'V_{i+1}'][j][1]).subs(max_s[f'V_{i+1}']))/float(sympy.sympify(scope[f'V_{i+1}'][j][0]).subs(min_s[f'V_{i+1}'])),10).evalf() if scope[f'V_{i+1}'][j][3] == 'ulog' else u_span for j in range(0,n_var)]) for i in range(0,n_v)]
+    tmp_scope = scope.copy()
+    for i in range(0,n_v):
+        for j in range(0,n_var):
+            while not (sympy.sympify(tmp_scope[f'V_{i+1}'][j][1]).is_real and sympy.sympify(tmp_scope[f'V_{i+1}'][j][0]).is_real):
+                    tmp_scope[f'V_{i+1}'][j][1] = sympy.sympify(tmp_scope[f'V_{i+1}'][j][1]).subs(max_s[f'V_{i+1}'])
+                    tmp_scope[f'V_{i+1}'][j][0] = sympy.sympify(tmp_scope[f'V_{i+1}'][j][0]).subs(min_s[f'V_{i+1}'])
+    v = [np.prod([sympy.log(float(sympy.sympify(tmp_scope[f'V_{i+1}'][j][1]).subs(max_s[f'V_{i+1}']))/float(sympy.sympify(tmp_scope[f'V_{i+1}'][j][0]).subs(min_s[f'V_{i+1}'])),10).evalf() if tmp_scope[f'V_{i+1}'][j][3] == 'ulog' else u_span for j in range(0,n_var)]) for i in range(0,n_v)]
     n_points = [round(p/sum(v)*n) for p in v]
     return exp, vars, scope, n_points
         
@@ -120,7 +134,7 @@ def get_points(exp, vars, scope, n, u_span):
 
     for j in range(0, int(n_var)):
         names['x'+str(j)] = sympy.Symbol(vars[j])
-
+    
     for i in range(0,n_v):
         limit=[]
         max_s = []
@@ -129,25 +143,36 @@ def get_points(exp, vars, scope, n, u_span):
         for j in range(0,n_var):
             for p in (0,1):
                 if not sympy.sympify(scope[f'V_{i+1}'][j][p]).is_real:
-                    for q in range(0,n_var):
-                        if sympy.sympify(scope[f'V_{i+1}'][j][p]).has(names['x'+str(q)]):
-                            limit.append((j, q) if p else (q, j))
-                            scope[f'V_{i+1}'][j][p] = scope[f'V_{i+1}'][q][p]
-                            print(scope[f'V_{i+1}'][j][p], vars)
-                            print(type(scope[f'V_{i+1}'][j][p]), type(vars[0]), scope[f'V_{i+1}'][j][p] == vars[0])
-                            break
-                            
+                    while sympy.sympify(scope[f'V_{i+1}'][j][p]).has(names['x'+str(q)] for q in range(0,n_var)):
+                        for q in range(0,n_var):
+                            if sympy.sympify(scope[f'V_{i+1}'][j][p]).has(names['x'+str(q)]):
+                                limit.append((j, q, '<',scope[f'V_{i+1}'][j][p]) if p else (j, q, '>',scope[f'V_{i+1}'][j][p]))
+                                n_l = sympy.sympify(scope[f'V_{i+1}'][j][p]).subs(min_s).evalf()
+                                n_h = sympy.sympify(scope[f'V_{i+1}'][j][p]).subs(max_s).evalf()
+                                scope[f'V_{i+1}'][j][p] = n_h if p else n_l
+
+                                #print(scope[f'V_{i+1}'][j][p], vars)
+                                break
+                                
                     if not sympy.sympify(scope[f'V_{i+1}'][j][p]).is_real:
-                        raise ValueError("Error scope!")                    
-                        
+                        raise ValueError("Error scope!")    
+                  
             max_s.append((vars[j],scope[f'V_{i+1}'][j][1]))
             min_s.append((vars[j],scope[f'V_{i+1}'][j][0]))
 
+        #for j in range(0,n_var): 
+        #    while not (sympy.sympify(scope[f'V_{i+1}'][j][1]).is_real and sympy.sympify(scope[f'V_{i+1}'][j][0]).is_real):
+        #        scope[f'V_{i+1}'][j][1] = sympy.sympify(scope[f'V_{i+1}'][j][1]).subs(max_s)
+        #        scope[f'V_{i+1}'][j][0] = sympy.sympify(scope[f'V_{i+1}'][j][0]).subs(min_s)          
+
         #SALIENT VARIABLE HOMOGENIZATION ALGORITHM
-        print(scope[f'V_{i+1}'][j][1], scope[f'V_{i+1}'][j][0])
+        #print(scope[f'V_{i+1}'], scope[f'V_{i+1}'])
         v = [math.ceil(sympy.log(float(sympy.sympify(scope[f'V_{i+1}'][j][1]).subs(max_s))/float(sympy.sympify(scope[f'V_{i+1}'][j][0]).subs(min_s)),10).evalf()) if scope[f'V_{i+1}'][j][3] == 'ulog' else u_span for j in range(0,n_var)]
+        v = [math.ceil(sympy.log(abs(v[j]),4).evalf()) if (sympy.log(abs(v[j]),4).evalf() > 1 and scope[f'V_{i+1}'][j][3] == 'ulog') else v[j] for j in range(0,n_var)]
+        v = [abs(a) for a in v]
+        #print(v)
         V = np.prod(v)
-        print(v)
+        #print(v)
         Volumn = V
         C = [0] * Volumn
         points = []
@@ -155,13 +180,15 @@ def get_points(exp, vars, scope, n, u_span):
             error = 0
             #随机选取样点
             loc, point = get_point(i, scope, n_var, u_span)
+
             #处理limit
             for l in limit:
-                if point[l[0]] > point[l[1]]:
-                    error = 1
+                error = point[l[0]] > sympy.sympify(l[3]).subs(vars[l[1]], point[l[1]]).evalf() if l[2] == '<' else point[l[0]] < sympy.sympify(l[3]).subs(vars[l[1]], point[l[1]]).evalf()
+                if error == 1: 
                     break
             if error == 1:
                 continue
+
             #处理NAN、INF
             constant = {G,c,epsilon0,g,h,k,qe,mew0,Bohr,NA,F}
             exp_c = exp
@@ -176,11 +203,11 @@ def get_points(exp, vars, scope, n, u_span):
             
             if sympy.sympify(exp_c) == sympy.nan or sympy.sympify(exp_c) == sympy.oo:
                 continue
+            
 
             #根据分布概率取点
-            #print(V)
-            #print(loc)
-            if loc < 0:
+            if loc < 0 or loc > V:
+                print(V, loc)
                 raise ValueError("Error loc!")
             C[loc] += 1
             p_m = min(a/sum(C) for a in C)
@@ -197,19 +224,24 @@ def get_points(exp, vars, scope, n, u_span):
 #限定范围内按分布取一个点
 def get_point(i, scope, n_var, u_span):
     v = [math.ceil(sympy.log(float(sympy.sympify(scope[f'V_{i+1}'][j][1]))/float(sympy.sympify(scope[f'V_{i+1}'][j][0])),10).evalf()) if scope[f'V_{i+1}'][j][3] == 'ulog' else u_span for j in range(0,n_var)]
-    V = np.prod(v)
+    v = [(v[j], math.ceil(sympy.log(abs(v[j]),4).evalf())) if (sympy.log(abs(v[j]),4).evalf() > 1 and scope[f'V_{i+1}'][j][3] == 'ulog') else v[j] for j in range(0,n_var)]
+    V = np.prod([abs(v[j][1]) if isinstance(v[j],tuple) else abs(v[j]) for j in range(0,n_var)])
     point = []
     loc = 0
     for j in range(0,n_var):      
         max_s = float(sympy.sympify(scope[f'V_{i+1}'][j][1]))
         min_s = float(sympy.sympify(scope[f'V_{i+1}'][j][0]))
-        V /= v[j]
+        if isinstance(v[j],tuple):
+            V /= v[j][1]
+        else:
+            V /= v[j]
         #print(v,V)
         if scope[f'V_{i+1}'][j][3] == 'ulog':
-            s = random.uniform(0,v[j])
+            s = random.uniform(0,v[j][0]) if isinstance(v[j],tuple) else random.uniform(0,v[j])
             #print(s)
-            loc += (int(s) - 1) * V if s >= 1 else 0
-            sample_value = sympy.sympify(min_s) * sympy.Pow(10, s)
+            loc += (math.ceil(abs(s)*v[j][1]/v[j][0]) - 1) * V if isinstance(v[j],tuple) else int(abs(s)) * V
+            sample_value = sympy.sympify(min_s) * sympy.Pow(4, s)
+
             if scope[f'V_{i+1}'][j][2] == 'I':
                 sample_value = int(sample_value)
             elif scope[f'V_{i+1}'][j][2] == 'NI' or scope[f'V_{i+1}'][j][2] == 'AI':
@@ -217,19 +249,18 @@ def get_point(i, scope, n_var, u_span):
         elif scope[f'V_{i+1}'][j][3] == 'u' and (scope[f'V_{i+1}'][j][2] == 'I' or scope[f'V_{i+1}'][j][2] == 'NI' or scope[f'V_{i+1}'][j][2] == 'AI'):
             sample_value = random.randint(min_s, max_s)
             index = math.ceil((sample_value - min_s) * u_span/(max_s - min_s))
-            #print(index)
-            loc += (int(index) - 1) * V if index >= 1 else 0
+            #print(index,loc)
+            loc += (int(index) - 1) * V if index > 0 else 0
         elif scope[f'V_{i+1}'][j][3] == 'u' and (scope[f'V_{i+1}'][j][2] == 'F' or scope[f'V_{i+1}'][j][2] == 'NF' or scope[f'V_{i+1}'][j][2] == 'AF'):
             sample_value = random.uniform(min_s, max_s)
             index = math.ceil((sample_value - min_s) * u_span/(max_s - min_s))
-            #print(index)
-            loc += (int(index) - 1) * V if index >= 1 else 0
+            loc += (int(index) - 1) * V if index > 0 else 0
+            #print(index,loc)
 
-        #print(loc)
         point.append(sample_value)
     return loc, point
 
 if __name__ == "__main__":
     sample('real/phy_.csv', 10, 'points/phy.csv')
-    #sample('real/bio_.csv', 10, 'points/bio.csv')
+    sample('real/bio_.csv', 10, 'points/bio.csv')
     sample('real/che_.csv', 10, 'points/che.csv')

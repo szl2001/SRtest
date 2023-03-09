@@ -14,7 +14,7 @@ class GenConfig:
     unary_op_distribution: Dict[UnaryOp, int]
 
     affine_mantissa: Tuple[float, float] = (0.0, 1.0)
-    affine_exponent: Tuple[float, float] = (-2.0, 2.0)
+    affine_exponent: Tuple[float, float] = (-50.0, 50.0)
 
     # max_binary_ops = input_dim + max_binary_ops_extra
     max_binary_ops_extra: int = 5

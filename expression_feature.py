@@ -28,6 +28,7 @@ def get_features(field, path, save):
     for n in ana:
         names[n+'_fre'] = dict.fromkeys(ops+const+['const', 'var'],0)
         names[n+'_len'] = [0]
+    sample_dis = dict(ulog=0, u=0)
     
     for i, line in collection.iterrows():
         """表达式赋值"""
@@ -36,7 +37,6 @@ def get_features(field, path, save):
         exp = sympy.sympify(equation)
         n_var = line['variables']
         vars = []
-        sample_dis = dict(ulog=0, u=0)
         l = 0
         for j in range(0, int(n_var)):
             vars.append(line[f'v{j+1}_name'])

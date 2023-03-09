@@ -4,7 +4,8 @@ import numpy as np
 biop_map = {
     "add": np.add,
     "mul": np.multiply,
-    "sub": np.subtract
+    "sub": np.subtract,
+    "pow":  np.power
 }
 
 unop_map = {
@@ -15,7 +16,6 @@ unop_map = {
     "inv":  lambda x: 1 / x,
     "log":  np.log,
     "sin":  np.sin,
-    "sqr":  np.square,
     "sqrt": np.sqrt,
     "tan":  np.tan
 }

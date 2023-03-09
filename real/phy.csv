@@ -95,7 +95,7 @@ Filename,Number,Output,Formula,variables,v1_name,v1_type,v1_sample_type,v1_low,v
 ?qIII.14.14,94,I,I_0*(exp(q*Volt/(k*T))-1),4,I_0,F,ulog,1e-3,0.1,q,F,ulog,1e-19,1e-16,Volt,F,ulog,0.1,10,T,F,ulog,10.0,1000,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 !III.15.12,95,E_n,2*U*(1-cos(K*d)),3,U,F,ulog,1e-18,1e-16,K,F,ulog,0.1,10,d,F,ulog,1e-10,1e-8,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 !III.15.14,96,m,(h/(2*pi))**2/(2*E_n*d**2),2,E_n,F,ulog,1e-18,1e-16,d,F,ulog,1e-10,1e-8,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-?iIII.15.27,97,K,2*pi*alpha/(n*d),3,alpha,AI,ulog,-0.5*n,0.5*n,n,I,ulog,1.0,100,d,F,ulog,1e-10,1e-8,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+?iIII.15.27,97,K,2*pi*alpha/(n*d),3,alpha,I,ulog,1.0,0.5*n,n,I,ulog,1.0,100,d,F,ulog,1e-10,1e-8,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 !III.17.37,98,f,b*(1+alpha*cos(theta)),3,b,F,ulog,1e-18,1e-16,alpha,F,ulog,1e-18,1e-16,theta,F,u,0.0,2*pi,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 !III.19.51,99,E_n,-m*q**4/(2*(4*pi*epsilon0)**2*(h/(2*pi))**2)*(1/n**2),3,m,F,ulog,1e-30,1e-28,q,F,ulog,1e-11,1e-9,n,I,ulog,1.0,100,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 !III.21.20,100,j,-rho_c_0*q*A_vec/m,4,rho_c_0,F,ulog,1e27,1e29,q,F,ulog,1e-11,1e-9,A_vec,F,ulog,0.001,0.1,m,F,ulog,9.999999999999999e-31,1e-28,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,

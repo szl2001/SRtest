@@ -7,13 +7,13 @@ class E2EBiOp(BinaryOp):
     add = auto()
     mul = auto()
     sub = auto()
+    pow = auto()
 
 
 @unique
 class E2EUnOp(UnaryOp):
     inv = auto()
     abs = auto()
-    sqr = auto()
     sqrt = auto()
     sin = auto()
     cos = auto()
@@ -40,7 +40,8 @@ class E2EVar(Variable):
 binary_op_map = {
     E2EBiOp.add: "add",
     E2EBiOp.mul: "mul",
-    E2EBiOp.sub: "sub"
+    E2EBiOp.sub: "sub",
+    E2EBiOp.pow: "pow"
 }
 
 unary_op_map = {
@@ -51,7 +52,6 @@ unary_op_map = {
     E2EUnOp.inv: "inv",
     E2EUnOp.log: "log",
     E2EUnOp.sin: "sin",
-    E2EUnOp.sqr: "sqr",
     E2EUnOp.sqrt: "sqrt",
     E2EUnOp.tan: "tan"
 }

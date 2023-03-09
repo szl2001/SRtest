@@ -89,9 +89,9 @@ def handle(field, path, save):
                 d=exp.match(eq_w)
 
                 if d:
-                    for jd in d.values():
+                    for j in d.values():
                         #去除复数及常数替换
-                        if jd.evalf().is_complex:
+                        if j.evalf().is_complex:
                             repeat = 0
                             break
                         else:
@@ -109,24 +109,13 @@ def handle(field, path, save):
 
                         tmp_after = after[l[3]-1].copy()
                         for j in range(0, int(l[1])):
-                            
-                            new_min = d[l[4][j]].subs(replace)
-                            new_max = d[l[4][j]].subs(replace)
-                            #确定合并sample
-                            st = 'u'
-                            for t in range(0, int(l[1])):
-                                if new_min.has(names['x'+str(t)]) or new_max.has(names['x'+str(t)]):
-                                    if st == 'u':
-                                        st = line[f'v{t+1}_sample_type']
-                                    if st == 'ulog':
-                                        break
-
+                            #var = str(l[4][j])[0:-1]
                             new_min = (d[l[4][j]].subs(min_scope)).evalf()
                             new_min = new_min.subs(replace)
                             new_max = (d[l[4][j]].subs(max_scope)).evalf()
                             new_max = new_max.subs(replace)
                     
-                            #print(new_min, new_max)
+                            print(new_min, new_max)
                             try:
                                 if float(new_min) > float(new_max):
                                     n = new_min
@@ -134,9 +123,32 @@ def handle(field, path, save):
                                     new_max = n
                             except:
                                 for t in range(0, int(l[1])):
-                                    if new_min.has(names['x'+str(t)]) or new_max.has(names['x'+str(t)]):
-                                        repeat = 0
-                                        break
+                                    if new_min.has(names['x'+str(t)]) and new_max.has(names['x'+str(t)]):
+                                        if not names['x'+str(t)].is_positive == None:
+                                            if new_max < new_min:
+                                                n = new_min
+                                                new_min = new_max
+                                                new_max = n
+                                            new_max = new_max.subs(max_scope).evalf()
+                                            new_min = new_min.subs(min_scope).evalf()
+                                            break
+                                        else:
+                                            n1 = (new_min.subs(min_scope)).evalf()
+                                            n2 = (new_min.subs(max_scope)).evalf()
+                                            n3 = (new_max.subs(max_scope)).evalf()
+                                            n4 = (new_max.subs(min_scope)).evalf()
+                                            n = [float(n1), float(n2), float(n3), float(n4)]
+                                            new_max = n[n.index(max(n))]
+                                            new_min = n[n.index(min(n))]
+                                            break
+                                    elif new_min.has(names['x'+str(t)]):
+                                        mi_h = new_min.subs(max_scope).evalf()
+                                        mi_l = new_min.subs(min_scope).evalf()
+                                        new_min = mi_l if mi_l < mi_h else mi_h
+                                    elif new_max.has(names['x'+str(t)]):
+                                        ma_h = new_max.subs(max_scope).evalf()
+                                        ma_l = new_max.subs(min_scope).evalf()
+                                        new_min = ma_l if ma_l < ma_h else ma_h
                             #l[3][var].append((new_min,new_max))
                             if new_max == new_min:
                                 repeat = 0
@@ -147,7 +159,9 @@ def handle(field, path, save):
                             else:
                                 t = 'F'
                             
-                            if new_min == 0:
+                            if new_min != 0:
+                                st = line[f'v{j+1}_sample_type']
+                            else:
                                 st = 'u'
 
                             tmp_after[f'v{j+1}_type'] += ('&' + t)
@@ -179,8 +193,8 @@ def add(path, save):
 
 if __name__ == "__main__":
     handle('phy','real/phy.csv','real/phy_.csv')
-    handle('che','real/che.csv','real/che_.csv')
-    handle('bio','real/bio.csv','real/bio_.csv')
+    #handle('che','real/che.csv','real/che_.csv')
+    #handle('bio','real/bio.csv','real/bio_.csv')
     #add('real/bio.csv','real/bio.csv')
     #add('real/phy.csv','real/phy.csv')
     #add('real/che.csv','real/che.csv')

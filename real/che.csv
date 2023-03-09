@@ -48,7 +48,7 @@ Filename,Number,Output,Formula,variables,v1_name,v1_type,v1_sample_type,v1_low,v
 8.27,47,K,c*A**2/(Am**2-Am*A),3,c,F,ulog,0.001,1.0,Am,F,ulog,1e-3,0.1,A,F,ulog,1e-3,0.1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 8.45,48,y,-A*z**2*sqrt(I),3,A,F,ulog,0.1,1.0,I,F,ulog,1e-3,100,z,I,u,1,7.0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 8.48,49,y,-A*z1*z2*sqrt(I)/(1+sqrt(I-1)),4,z1,I,u,1.0,7.0,z2,I,u,1,7,A,F,ulog,0.1,1.0,I,F,ulog,1,100,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-8.63d,50,k,sqrt(8*pi*qe**2*NA*r/(epsilon*k*T)*sqrt(I)),4,r,F,ulog,100.0,10000.0,epsilon,F,ulog,1e-12,1e-10,T,F,ulog,10,1000.0,I,F,ulog,1e-3,100,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+8.63d,50,k,sqrt(8*pi*qe**2*NA*r/(epsilon*k*T))*sqrt(I),4,r,F,ulog,100.0,10000.0,epsilon,F,ulog,1e-12,1e-10,T,F,ulog,10,1000.0,I,F,ulog,1e-3,100,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 8.70,51,F,z*qe*la/(epsilon*r)-z*qe*k*la**2/epsilon,5,z,I,u,1.0,7.0,la,F,u,0,1,epsilon,F,ulog,1e-12,1e-10,r,F,ulog,1e-10,1e-8,k,F,ulog,1e-7,0.001,,,,,,,,,,,,,,,,,,,,,,,,,
 9.8,52,E,-k*T/(z*qe)*ln(a1**2*a2**2/(a3*a4)),6,T,F,ulog,10.0,1000.0,z,I,u,1,7,a1,F,ulog,0.01,10.0,a2,F,ulog,0.01,10,a3,F,ulog,0.01,10.0,a4,F,ulog,0.01,10.0,,,,,,,,,,,,,,,,,,,,
 9.30,53,K,exp(z*E*qe/(k*T)),3,z,I,u,1.0,7.0,E,AF,u,-10,10,T,F,ulog,10,1000.0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,

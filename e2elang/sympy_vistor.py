@@ -20,6 +20,8 @@ class SympyVisitor(Visitor):
             return left * right
         elif ty == E2EBiOp.sub:
             return left - right
+        elif ty == E2EBiOp.pow:
+            return left ** right
         else:
             raise NotImplementedError(f"Unknown Binary Opcode: {ty}")
 
@@ -38,8 +40,6 @@ class SympyVisitor(Visitor):
             return sp.log(left)
         elif ty == E2EUnOp.sin:
             return sp.sin(left)
-        elif ty == E2EUnOp.sqr:
-            return left * left
         elif ty == E2EUnOp.sqrt:
             return sp.sqrt(left)
         elif ty == E2EUnOp.tan:
