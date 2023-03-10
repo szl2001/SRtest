@@ -5,19 +5,26 @@ biop_map = {
     "add": np.add,
     "mul": np.multiply,
     "sub": np.subtract,
-    "pow":  np.power
+    "div": np.divide,
+    "pow": np.power
 }
 
 unop_map = {
     "abs":  np.abs,
-    "atan": np.arctan,
-    "cos":  np.cos,
     "exp":  np.exp,
-    "inv":  lambda x: 1 / x,
-    "log":  np.log,
-    "sin":  np.sin,
     "sqrt": np.sqrt,
-    "tan":  np.tan
+    "inv":  lambda x: 1 / x,
+    "ln":  np.log,
+    "lg": np.log10,
+    "sin":  np.sin,
+    "cos":  np.cos,
+    "tan":  np.tan,
+    "asin":  np.arcsin,
+    "acos":  np.arccos,
+    "atan":  np.arctan,
+    "sinh":  np.sinh,
+    "cosh":  np.cosh,
+    "tanh":  np.tanh
 }
 
 def execute(instr, mem, floatDecoder):

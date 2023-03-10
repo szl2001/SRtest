@@ -4,12 +4,20 @@ import pandas as pd
 import re
 import numpy as np
 from constants import G,c,epsilon0,g,h,k,qe,mew0,NA,F,Bohr
+from e2elang.opcode import const_map
 
 def get_features(field, path, save):
+    def isfloat(str):
+        try:
+            float(str)
+            return 1
+        except:
+            return 0
+
     names = locals()
 
-    ops = ['+','-','*','/','**','sqrt','exp','sin','cos','tan','sinh','cosh','tanh','ln','lg']
-    const = ['G','c','epsilon0','g','h','k','qe','mew0','NA','F','Bohr']
+    ops = ['+','-','*','/','**','sqrt','exp','sin','cos','tan','sinh','cosh','tanh','ln','lg','arcsin','arctan','arccos', 'abs']
+    const = ['G','c','epsilon0','g','h','k','qe','mew0','NA','F','Bohr', 'pi']
     collection = pd.read_csv(path)
     if field == "phy":
         constant = {G,c,epsilon0,g,h,k,qe,mew0,Bohr}
@@ -21,15 +29,20 @@ def get_features(field, path, save):
         constant = {}
 
     len_d = [0]
+    biop = [0]
+    unop = [0]
     vars_num = [0]
+    biop_coff = []
+    unop_coff = []
     fre = dict.fromkeys(ops+const,0)
+    number_num = 0
 
     ana = ['exp', 'lg', 'ln','sqrt','**']
     for n in ana:
         names[n+'_fre'] = dict.fromkeys(ops+const+['const', 'var'],0)
         names[n+'_len'] = [0]
     sample_dis = dict(ulog=0, u=0)
-    
+
     for i, line in collection.iterrows():
         """表达式赋值"""
         equation = line['Formula']
@@ -38,6 +51,8 @@ def get_features(field, path, save):
         n_var = line['variables']
         vars = []
         l = 0
+        bi = 0
+        un = 0
         for j in range(0, int(n_var)):
             vars.append(line[f'v{j+1}_name'])
             sample_scope = str.split(line[f'v{j+1}_sample_type'], '&')
@@ -46,20 +61,53 @@ def get_features(field, path, save):
 
         """操作符与常数频率、表达式(操作符)长度分析"""
         for op in ops:
-            a =  equation.count(op,0,len(equation))
+            if op == '*':
+                a = equation.count(op,0,len(equation)) - 2*equation.count('**',0,len(equation))
+            elif op in ops[7:10]:
+                a = equation.count(op,0,len(equation)) - equation.count(ops[ops.index(op)+3],0,len(equation)) - equation.count(ops[ops.index(op)+8],0,len(equation))
+            else:
+                a =  equation.count(op,0,len(equation))
             fre[op] += a
             l += a
+            if op in ops[0:5]:
+                bi += a
+            else:
+                un += a
+        biop_coff.append(bi/int(n_var))
+        unop_coff.append(un/int(n_var))
         
+        sub = [equation]
+        for op in ops+const+['(', ')']:
+            tmp_sub = []
+            for substr in sub:
+                tmp_sub += str.split(substr, op)
+            sub = tmp_sub
+        number_num += sum([1 if isfloat(substr) and substr not in const and substr not in vars else 0 for substr in sub])
+
         for con in const:
-            if con not in vars:
+            if con not in vars and exp.has(const_map[con]):
                 a =  equation.count(con,0,len(equation))
+                #print(equation, a, vars)
                 fre[con] += a
 
         if l >= len(len_d):
             len_d += [0] * (l-len(len_d))
             len_d.append(1)
+            print(l,equation)
         else:
             len_d[l] += 1
+
+        if bi >= len(biop):
+            biop += [0] * (bi-len(biop))
+            biop.append(1)
+        elif bi != 0:
+            biop[bi] += 1
+
+        if un >= len(unop):
+            unop += [0] * (un-len(unop))
+            unop.append(1)
+        elif un != 0:
+            unop[un] += 1
 
         if n_var >= len(vars_num):
             vars_num += [0] * (n_var-len(vars_num))
@@ -70,7 +118,7 @@ def get_features(field, path, save):
         """特殊操作符内长度、频率统计"""
         for n in ana:
             for substr in str.split(equation, n)[1:]:
-                print(equation)
+                #print(equation)
                 r = 0
                 ind = 0
                 ana_len = 0
@@ -95,13 +143,13 @@ def get_features(field, path, save):
                         break
                     else:
                         ind += 1
-                print(substr[1:ind])
+                #print(substr[1:ind])
                 if not sympify(substr[1:ind]).is_real:
                     for op in ops:
                         a =  substr[1:ind].count(op)
                         names[n+'_fre'][op] += a
-                    for con in const:
-                        if con not in vars:
+                    for con in const :
+                        if con not in vars and exp.has(const_map[con]):
                             a =  substr[1:ind].count(con)
                             names[n+'_fre'][con] += a
                     for v in vars:
@@ -121,6 +169,9 @@ def get_features(field, path, save):
 
 
     fre['*'] -= 2 * fre['**']
+    fre['sin'] -= (fre['arcsin'] + fre['sinh'])
+    fre['cos'] -= (fre['arccos'] + fre['cosh'])
+    fre['tan'] -= (fre['arctan'] + fre['tanh'])
     ave_len = sum(j*len_d[j] for j in range(len(len_d)))/(i+1)
     max_len = len(len_d) - 1
     min_len = np.flatnonzero(len_d)[0]
@@ -130,11 +181,16 @@ def get_features(field, path, save):
     result['field'] = field
     result['vars_num'] = vars_num
     result['const_num'] = const_num
+    result['number_num'] = number_num
     result['sample_distribution'] = sample_dis
     result['len'] = len_d
     result['ave_len'] = ave_len
     result['max_len'] = max_len
     result['min_len'] = min_len
+    result['biop'] = biop
+    result['unop'] = unop
+    result['biop_coff'] = biop_coff
+    result['unop_coff'] = unop_coff
     result['fre'] = fre
 
     for n in ana:
@@ -147,9 +203,9 @@ def get_features(field, path, save):
     res.to_csv(save)
 
 if __name__ == "__main__":
-    get_features('phy','real/phy_.csv','real/feature/phy_fea_.csv')
-    get_features('che','real/che_.csv','real/feature/che_fea_.csv')
-    get_features('bio','real/bio_.csv','real/feature/bio_fea_.csv')
+    get_features('phy','real/phy_.csv','real/feature/phy_fea.csv')
+    get_features('che','real/che_.csv','real/feature/che_fea.csv')
+    get_features('bio','real/bio_.csv','real/feature/bio_fea.csv')
 
 
 

@@ -29,28 +29,42 @@ class SRasmInterpreter:
                 return lchild * rchild
             elif op == E2EBiOp.sub:
                 return lchild - rchild
-            elif op == E2EUnOp.sqr:
+            elif op == E2EBiOp.div:
+                return lchild/rchild
+            elif op == E2EBiOp.pow:
                 return np.power(lchild, rchild)
 
         def dispatch_unop(op, lchild):
             if op == E2EUnOp.abs:
                 return np.abs(lchild)
-            elif op == E2EUnOp.atan:
-                return np.arctan(lchild)
-            elif op == E2EUnOp.cos:
-                return np.cos(lchild)
             elif op == E2EUnOp.exp:
                 return np.exp(lchild)
             elif op == E2EUnOp.inv:
                 return 1 / lchild
-            elif op == E2EUnOp.log:
+            elif op == E2EUnOp.sqrt:
+                return np.sqrt(lchild)
+            elif op == E2EUnOp.lg:
+                return np.log10(lchild)
+            elif op == E2EUnOp.ln:
                 return np.log(lchild)
             elif op == E2EUnOp.sin:
                 return np.sin(lchild)
-            elif op == E2EUnOp.sqrt:
-                return np.sqrt(lchild)
+            elif op == E2EUnOp.cos:
+                return np.cos(lchild)
             elif op == E2EUnOp.tan:
                 return np.tan(lchild)
+            elif op == E2EUnOp.asin:
+                return np.arcsin(lchild)
+            elif op == E2EUnOp.acos:
+                return np.arccos(lchild)
+            elif op == E2EUnOp.atan:
+                return np.arctan(lchild)
+            elif op == E2EUnOp.sinh:
+                return np.sinh(lchild)
+            elif op == E2EUnOp.cosh:
+                return np.cosh(lchild)
+            elif op == E2EUnOp.tanh:
+                return np.tanh(lchild)
 
         op = instr[0]
         if op in rev_biop:

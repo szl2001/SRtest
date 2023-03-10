@@ -4,7 +4,9 @@ from typing import List, Tuple, Dict
 from e2elang.opcode import E2EBiOp
 from exprtree.expr import Node, BinaryOp, UnaryOp, Variable
 from numpy.random import Generator
+from constants import Constants
 import numpy as np
+import math
 
 
 @dataclass
@@ -12,13 +14,16 @@ class GenConfig:
     vars: List[Variable]
     binary_op_distribution: Dict[BinaryOp, int]
     unary_op_distribution: Dict[UnaryOp, int]
+    const_distribution: Dict[Constants ,int]
+    max_binary_ops_coff: float
+    max_binary_ops: int
+    ave_binary_ops: int
+    max_unary_ops: int
 
     affine_mantissa: Tuple[float, float] = (0.0, 1.0)
     affine_exponent: Tuple[float, float] = (-50.0, 50.0)
 
     # max_binary_ops = input_dim + max_binary_ops_extra
-    max_binary_ops_extra: int = 5
-    max_unary_ops: int = 5
 
 
 class TreeGen:
@@ -75,7 +80,7 @@ class TreeGen:
             return node, chain([node], lnodes, rnodes), chain(empty_lnodes, empty_rnodes)
 
     def sample_tree(self, input_dim: int):
-        max_binary_ops = input_dim + self.cfg.max_binary_ops_extra
+        max_binary_ops = max(min(math.ceil(input_dim * self.cfg.max_binary_ops_coff), self.cfg.max_binary_ops), input_dim + int(self.cfg.ave_binary_ops))
         binary_ops_num = self.rng.integers(input_dim - 1, max_binary_ops + 1)
         binary_tree, binary_op_nodes, var_nodes = self.sample_binary_tree(
             binary_ops_num)

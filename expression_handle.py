@@ -178,9 +178,9 @@ def add(path, save):
     collection.to_csv(save,index=None)
 
 if __name__ == "__main__":
-    handle('phy','real/phy.csv','real/phy_.csv')
-    handle('che','real/che.csv','real/che_.csv')
-    handle('bio','real/bio.csv','real/bio_.csv')
+    handle('phy','real/phy.csv','real/phy_1.csv')
+    #handle('che','real/che.csv','real/che_.csv')
+    #handle('bio','real/bio.csv','real/bio_.csv')
     #add('real/bio.csv','real/bio.csv')
     #add('real/phy.csv','real/phy.csv')
     #add('real/che.csv','real/che.csv')

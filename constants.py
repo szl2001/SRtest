@@ -10,39 +10,43 @@ import mpmath.libmp as mlib
 #-----------------------------------------------------------------------------
 # Constants
 #-----------------------------------------------------------------------------
+class Constants(NumberSymbol, metaclass=Singleton):
 
-__all__ = [
-    'h',
-    'PLC',
-    'UGC',
-    'G',
-    'VOL',
-    'c',
-    'EPS',
-    'epsilon0',
-    'Ga',
-    'g',
-    'BOC',
-    'k',
-    'ELC',
-    'qe',
-    'EMC',
-    'me',
-    'alpha',
-    'FSC',
-    'PIV',
-    'mew0',
-    'BMC',
-    'Bohr',
-    'AVC',
-    'NA',
-    'FAC',
-    'F'
+    __all__ = [
+        'h',
+        'PLC',
+        'UGC',
+        'G',
+        'VOL',
+        'c',
+        'EPS',
+        'epsilon0',
+        'Ga',
+        'g',
+        'BOC',
+        'k',
+        'ELC',
+        'qe',
+        'EMC',
+        'me',
+        'alpha',
+        'FSC',
+        'PIV',
+        'mew0',
+        'BMC',
+        'Bohr',
+        'AVC',
+        'NA',
+        'FAC',
+        'F'
+    ]
+    is_real = True
+    is_positive = True
+    is_negative = False
+    is_irrational = True
 
-]
 
-
-class PLC(NumberSymbol, metaclass=Singleton):
+class PLC(Constants):
     """Reduced Plank's constant in numerical and symbolic form [1]_.
 
     Examples
@@ -85,7 +89,7 @@ class PLC(NumberSymbol, metaclass=Singleton):
 # Create an instance for everyone to use.
 h = PLC()
 
-class UGC(NumberSymbol, metaclass=Singleton):
+class UGC(Constants):
     """
     Universal Gravitational Constant
     """
@@ -117,7 +121,7 @@ class UGC(NumberSymbol, metaclass=Singleton):
 # Create an instance for everyone to use.
 G = UGC()
 
-class VOL(NumberSymbol, metaclass=Singleton):
+class VOL(Constants):
     """
     velocity of light
     """
@@ -149,7 +153,7 @@ class VOL(NumberSymbol, metaclass=Singleton):
 # Create an instance for everyone to use.
 c = VOL()
 
-class EPS(NumberSymbol, metaclass=Singleton):
+class EPS(Constants):
     """
     vacuum dielectric constant
     """
@@ -181,7 +185,7 @@ class EPS(NumberSymbol, metaclass=Singleton):
 # Create an instance for everyone to use.
 epsilon0 = EPS()
 
-class Ga(NumberSymbol, metaclass=Singleton):
+class Ga(Constants):
     """
     Gravitational acceleration
     """
@@ -213,7 +217,7 @@ class Ga(NumberSymbol, metaclass=Singleton):
 # Create an instance for everyone to use.
 g = Ga()
 
-class BOC(NumberSymbol, metaclass=Singleton):
+class BOC(Constants):
     """
     Boltzmann constant
     """
@@ -245,7 +249,7 @@ class BOC(NumberSymbol, metaclass=Singleton):
 # Create an instance for everyone to use.
 k = BOC()
 
-class ELC(NumberSymbol, metaclass=Singleton):
+class ELC(Constants):
     """
     electron charge
     """
@@ -277,7 +281,7 @@ class ELC(NumberSymbol, metaclass=Singleton):
 # Create an instance for everyone to use.
 qe = ELC()
 
-class EMC(NumberSymbol, metaclass=Singleton):
+class EMC(Constants):
     """
     electron mass
     """
@@ -309,7 +313,7 @@ class EMC(NumberSymbol, metaclass=Singleton):
 # Create an instance for everyone to use.
 me = EMC()
 
-class FSC(NumberSymbol, metaclass=Singleton):
+class FSC(Constants):
     """
     Fine structure constant
     """
@@ -341,7 +345,7 @@ class FSC(NumberSymbol, metaclass=Singleton):
 # Create an instance for everyone to use.
 alpha = FSC()
 
-class PIV(NumberSymbol, metaclass=Singleton):
+class PIV(Constants):
     """
     permeability in vacuum
     """
@@ -373,7 +377,7 @@ class PIV(NumberSymbol, metaclass=Singleton):
 # Create an instance for everyone to use.
 mew0 = PIV()
 
-class BMC(NumberSymbol, metaclass=Singleton):
+class BMC(Constants):
     """
     Bohr magneton
     """
@@ -405,7 +409,7 @@ class BMC(NumberSymbol, metaclass=Singleton):
 # Create an instance for everyone to use.
 Bohr = BMC()
 
-class AVC(NumberSymbol, metaclass=Singleton):
+class AVC(Constants):
     """
     Avogadro constant
     """
@@ -437,7 +441,7 @@ class AVC(NumberSymbol, metaclass=Singleton):
 # Create an instance for everyone to use.
 NA = AVC()
 
-class FAC(NumberSymbol, metaclass=Singleton):
+class FAC(Constants):
     """
     Faraday constant
     """

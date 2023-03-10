@@ -6,19 +6,31 @@ from e2elang.sympy_vistor import SympyVisitor
 from floatconvert.fp16_converter import FP16Converter
 from points_gen import PointsGen
 import pickle
+import pandas as pd
+from e2elang.opcode import real_biop_map, real_unop_map, const_map
+from constants import G,c,epsilon0,g,h,k,qe,mew0,NA,F,Bohr
 
 from multiprocessing import Pool
 
-
-def generate_expr(num: int):
-    rng = np.random.default_rng(3245)
+def test(field):
+    feature = pd.read_csv(f'real/feature/{field}_fea.csv')
+    feature = feature.set_index('Unnamed: 0',drop=True).T
+    bi_dis, un_dis, sp_str_dis, var_dis = get_dis(feature)
+    bi_coff, bi_max, un_max, ave_biop = get_op_num(feature)
     cfg = GenConfig(
         list(E2EVar),
-        {E2EBiOp.add: 1, E2EBiOp.sub: 1, E2EBiOp.mul: 1},
-        {E2EUnOp.inv: 25, E2EUnOp.abs: 5, E2EUnOp.sqr: 15,
-         E2EUnOp.sqrt: 15, E2EUnOp.sin: 5, E2EUnOp.cos: 5,
-         E2EUnOp.tan: 1, E2EUnOp.atan: 1, E2EUnOp.log: 1,
-         E2EUnOp.exp: 5})
+        bi_dis, un_dis, sp_str_dis, bi_coff, bi_max, ave_biop, un_max)
+    print(bi_dis, un_dis, sp_str_dis, cfg)
+
+def generate_expr(num: int, field):
+    rng = np.random.default_rng(3245)
+    feature = pd.read_csv(f'real/feature/{field}_fea.csv')
+    feature = feature.set_index('Unnamed: 0',drop=True).T
+    bi_dis, un_dis, sp_str_dis, var_dis = get_dis(feature)
+    bi_coff, bi_max, un_max = get_op_num(feature)
+    cfg = GenConfig(
+        list(E2EVar),
+        bi_dis, un_dis, sp_str_dis, bi_coff, bi_max, un_max)
 
     tree_generator = TreeGen(cfg, rng)
     points_generator = PointsGen(rng)
@@ -48,6 +60,37 @@ def worker(task_id):
     with open(f"data{task_id}.pkl", "wb") as f:
         pickle.dump(data, f)
 
+def get_dis(feature):
+    biop_dis = dict()
+    for op in E2EBiOp.__members__.items():
+        biop_dis[op[1]] = 0
+    unop_dis = dict()
+    for op in E2EUnOp.__members__.items():
+        unop_dis[op[1]] = 0
+
+    fre = eval(feature['fre'][0])
+    constant = {G,c,epsilon0,g,h,k,qe,mew0,Bohr,NA,F}
+    const_dis = dict.fromkeys(constant,0)
+
+    for op in fre:
+        if op in real_biop_map:
+            biop_dis[real_biop_map[op]] = fre[op]
+        elif op in real_unop_map:
+            unop_dis[real_unop_map[op]] = fre[op]
+        elif op in const_map:
+            const_dis[const_map[op]] = fre[op]
+        else:
+            raise ValueError("unknown op or const!")
+    return biop_dis, unop_dis, const_dis, eval(feature['vars_num'][0])
+
+def get_op_num(feature):
+
+    biop_coff = eval(feature['biop_coff'][0])
+    biop_len = eval(feature['biop'][0])
+    ave_biop = sum([i*biop_len[i] for i in range(0, len(biop_len))])
+    unop_len = eval(feature['unop'][0])
+
+    return max(biop_coff), len(biop_len) - 1, len(unop_len) - 1, ave_biop
 
 def main():
     pool = Pool(32)
@@ -57,4 +100,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    #main()
+    test("bio")

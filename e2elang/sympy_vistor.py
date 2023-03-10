@@ -20,6 +20,8 @@ class SympyVisitor(Visitor):
             return left * right
         elif ty == E2EBiOp.sub:
             return left - right
+        elif ty == E2EBiOp.div:
+            return left / right
         elif ty == E2EBiOp.pow:
             return left ** right
         else:
@@ -28,22 +30,34 @@ class SympyVisitor(Visitor):
     def visit_unary_op(self, ty, left):
         if ty == E2EUnOp.abs:
             return sp.Abs(left)
-        elif ty == E2EUnOp.atan:
-            return sp.atan(left)
-        elif ty == E2EUnOp.cos:
-            return sp.cos(left)
         elif ty == E2EUnOp.exp:
             return sp.exp(left)
-        elif ty == E2EUnOp.inv:
-            return 1 / left
-        elif ty == E2EUnOp.log:
-            return sp.log(left)
-        elif ty == E2EUnOp.sin:
-            return sp.sin(left)
         elif ty == E2EUnOp.sqrt:
             return sp.sqrt(left)
+        elif ty == E2EUnOp.inv:
+            return 1 / left
+        elif ty == E2EUnOp.ln:
+            return sp.log(left)
+        elif ty == E2EUnOp.lg:
+            return sp.log(left, 10)
+        elif ty == E2EUnOp.sin:
+            return sp.sin(left)
+        elif ty == E2EUnOp.cos:
+            return sp.cos(left)
         elif ty == E2EUnOp.tan:
             return sp.tan(left)
+        elif ty == E2EUnOp.asin:
+            return sp.asin(left)
+        elif ty == E2EUnOp.acos:
+            return sp.acos(left)
+        elif ty == E2EUnOp.atan:
+            return sp.atan(left)
+        elif ty == E2EUnOp.sinh:
+            return sp.sinh(left)
+        elif ty == E2EUnOp.cosh:
+            return sp.cosh(left)
+        elif ty == E2EUnOp.tanh:
+            return sp.tanh(left)
         else:
             raise NotImplementedError(f"Unknown Unary Opcode: {ty}")
 
