@@ -12,6 +12,7 @@ import math
 @dataclass
 class GenConfig:
     vars: List[Variable]
+    vars_distribution: List[int]
     binary_op_distribution: Dict[BinaryOp, int]
     unary_op_distribution: Dict[UnaryOp, int]
     const_distribution: Dict[Constants ,int]
@@ -35,10 +36,16 @@ class TreeGen:
         def normalize(arr: List[int]):
             return np.array(arr) / np.sum(arr)
 
+        self.vars_dim_set = list(range(1,len(self.cfg.vars_distribution))) 
+        self.vars_dim_dist = normalize(list(self.cfg.vars_distribution[1:]))
         self.binary_op_set = list(self.cfg.binary_op_distribution.keys())
         self.binary_op_dist = normalize(list(self.cfg.binary_op_distribution.values()))
         self.unary_op_set = list(self.cfg.unary_op_distribution.keys())
         self.unary_op_dist = normalize(list(self.cfg.unary_op_distribution.values()))
+        self.const_set = list(self.cfg.const_distribution.keys())
+        self.const_dist = normalize(list(self.cfg.const_distribution.values()))
+
+        self.eq_generated = 0
 
     def mk_random_binary_op(self) -> Node:
         idx = self.rng.choice(len(self.binary_op_set), p=self.binary_op_dist)
@@ -47,6 +54,13 @@ class TreeGen:
     def mk_random_unary_op(self) -> Node:
         idx = self.rng.choice(len(self.unary_op_set), p=self.unary_op_dist)
         return Node(self.unary_op_set[idx])
+    
+    def mk_random_input_dim(self) -> int:
+        #print(self.vars_dim_set, self.vars_dim_dist)
+        rng = np.random.default_rng(self.eq_generated)
+        self.generated += 1
+        input_dim = self.rng.choice(self.vars_dim_set, p=self.vars_dim_dist)
+        return input_dim
 
     def uniform(self, low, high):
         return self.rng.random() * (high - low) + low

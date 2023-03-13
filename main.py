@@ -12,26 +12,16 @@ from constants import G,c,epsilon0,g,h,k,qe,mew0,NA,F,Bohr
 
 from multiprocessing import Pool
 
-def test(field):
-    feature = pd.read_csv(f'real/feature/{field}_fea.csv')
-    feature = feature.set_index('Unnamed: 0',drop=True).T
-    bi_dis, un_dis, sp_str_dis, var_dis = get_dis(feature)
-    bi_coff, bi_max, un_max, ave_biop = get_op_num(feature)
-    cfg = GenConfig(
-        list(E2EVar),
-        bi_dis, un_dis, sp_str_dis, bi_coff, bi_max, ave_biop, un_max)
-    print(bi_dis, un_dis, sp_str_dis, cfg)
-
 def generate_expr(num: int, field):
     rng = np.random.default_rng(3245)
     feature = pd.read_csv(f'real/feature/{field}_fea.csv')
     feature = feature.set_index('Unnamed: 0',drop=True).T
     bi_dis, un_dis, sp_str_dis, var_dis = get_dis(feature)
-    bi_coff, bi_max, un_max = get_op_num(feature)
+    bi_coff, bi_max, un_max, ave_biop = get_op_num(feature)
     cfg = GenConfig(
-        list(E2EVar),
-        bi_dis, un_dis, sp_str_dis, bi_coff, bi_max, un_max)
-
+        list(E2EVar), var_dis,
+        bi_dis, un_dis, sp_str_dis, bi_coff, bi_max, ave_biop, un_max)
+    #print(cfg)
     tree_generator = TreeGen(cfg, rng)
     points_generator = PointsGen(rng)
     fp16_converter = FP16Converter()
@@ -40,8 +30,8 @@ def generate_expr(num: int, field):
 
     datasets = []
     for _ in range(num):
-        input_dim = rng.integers(1, 10)
-        input_dim = 10
+        input_dim = tree_generator.mk_random_input_dim()
+        print(input_dim)
         tree = tree_generator.sample_tree(input_dim)
         # print(tree)
         # strs = str_vis.visit(tree)
@@ -56,7 +46,7 @@ def generate_expr(num: int, field):
 
 
 def worker(task_id):
-    data = generate_expr(1000)
+    data = generate_expr(10, "phy")
     with open(f"data{task_id}.pkl", "wb") as f:
         pickle.dump(data, f)
 
@@ -87,7 +77,7 @@ def get_op_num(feature):
 
     biop_coff = eval(feature['biop_coff'][0])
     biop_len = eval(feature['biop'][0])
-    ave_biop = sum([i*biop_len[i] for i in range(0, len(biop_len))])
+    ave_biop = sum([i*biop_len[i] for i in range(0, len(biop_len))])/sum(biop_len)
     unop_len = eval(feature['unop'][0])
 
     return max(biop_coff), len(biop_len) - 1, len(unop_len) - 1, ave_biop
@@ -100,5 +90,5 @@ def main():
 
 
 if __name__ == "__main__":
-    #main()
-    test("bio")
+    main()
+    #test("bio")

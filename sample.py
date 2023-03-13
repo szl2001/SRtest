@@ -5,8 +5,8 @@ import math
 import random
 from constants import G,c,epsilon0,g,h,k,qe,mew0,NA,F,Bohr
 
-def sample(path, n, save):
-    collection = pd.read_csv(path)
+def sample(path, field, n, save):
+    collection = pd.read_csv(f'real/{field}_.csv')
     sample_result = []
     ulog_num = 0
     ulog_span = 0
@@ -17,13 +17,17 @@ def sample(path, n, save):
     
     u_span = round(ulog_span/ulog_num)
     #print(u_span)
+    collection = pd.read_csv(path)
     for i, line in collection.iterrows():
         r = dict()
+        if i != 60:
+            continue
 
         pre_data = pre_handle(line, n, u_span)
         X, Y = get_points(pre_data[0], pre_data[1], pre_data[2], pre_data[3], u_span)
         
 
+        r['vars'] = pre_data[1]
         r['X'] = X
         r['Y'] = Y
         r['EQ'] = pre_data[0]
@@ -238,9 +242,10 @@ def get_point(i, scope, n_var, u_span):
         #print(v,V)
         if scope[f'V_{i+1}'][j][3] == 'ulog':
             s = random.uniform(0,v[j][0]) if isinstance(v[j],tuple) else random.uniform(0,v[j])
-            #print(s)
+            
             loc += (math.ceil(abs(s)*v[j][1]/v[j][0]) - 1) * V if isinstance(v[j],tuple) else int(abs(s)) * V
-            sample_value = sympy.sympify(min_s) * sympy.Pow(4, s)
+            sample_value = sympy.sympify(min_s) * sympy.Pow(10, s)
+            #print(s, sample_value)
 
             if scope[f'V_{i+1}'][j][2] == 'I':
                 sample_value = int(sample_value)
@@ -261,6 +266,6 @@ def get_point(i, scope, n_var, u_span):
     return loc, point
 
 if __name__ == "__main__":
-    sample('real/phy_.csv', 10, 'points/phy.csv')
-    sample('real/bio_.csv', 10, 'points/bio.csv')
-    sample('real/che_.csv', 10, 'points/che.csv')
+    sample('real/phy_.csv', 'phy', 200, 'points/phy.csv')
+    sample('real/bio_.csv', 'bio', 200, 'points/bio.csv')
+    sample('real/che_.csv', 'che', 200, 'points/che.csv')
