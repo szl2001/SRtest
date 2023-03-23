@@ -28,7 +28,7 @@ class SympyVisitor(Visitor):
             raise NotImplementedError(f"Unknown Binary Opcode: {ty}")
 
     def visit_unary_op(self, ty, left):
-        if ty == E2EUnOp.abs:
+        if ty == E2EUnOp.Abs:
             return sp.Abs(left)
         elif ty == E2EUnOp.exp:
             return sp.exp(left)

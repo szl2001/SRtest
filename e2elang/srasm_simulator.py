@@ -10,7 +10,7 @@ biop_map = {
 }
 
 unop_map = {
-    "abs":  np.abs,
+    "Abs":  np.abs,
     "exp":  np.exp,
     "sqrt": np.sqrt,
     "inv":  lambda x: 1 / x,

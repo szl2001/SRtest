@@ -16,7 +16,7 @@ def get_features(field, path, save):
 
     names = locals()
 
-    ops = ['+','-','*','/','**','sqrt','exp','sin','cos','tan','sinh','cosh','tanh','ln','lg','arcsin','arccos','arctan', 'abs']
+    ops = ['+','-','*','/','**','sqrt','exp','sin','cos','tan','sinh','cosh','tanh','ln','lg','asin','acos','atan', 'abs']
     const = ['G','c','epsilon0','g','h','k','qe','mew0','NA','F','Bohr', 'pi']
     collection = pd.read_csv(path)
     if field == "phy":
@@ -169,9 +169,9 @@ def get_features(field, path, save):
 
 
     #fre['*'] -= 2 * fre['**']
-    #fre['sin'] -= (fre['arcsin'] + fre['sinh'])
-    #fre['cos'] -= (fre['arccos'] + fre['cosh'])
-    #fre['tan'] -= (fre['arctan'] + fre['tanh'])
+    #fre['sin'] -= (fre['asin'] + fre['sinh'])
+    #fre['cos'] -= (fre['acos'] + fre['cosh'])
+    #fre['tan'] -= (fre['atan'] + fre['tanh'])
     ave_len = sum(j*len_d[j] for j in range(len(len_d)))/(i+1)
     max_len = len(len_d) - 1
     min_len = np.flatnonzero(len_d)[0]

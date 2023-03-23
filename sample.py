@@ -3,10 +3,12 @@ import pandas as pd
 import numpy as np
 import math
 import random
-from constants import G,c,epsilon0,g,h,k,qe,mew0,NA,F,Bohr
+from constants import G,c,epsilon0,g,h,k,qe,mew0,NA,F,Bohr,alpha,me
 
 def sample(path, field, n, save):
     collection = pd.read_csv(f'real/{field}_.csv')
+    global point_generated
+    point_generated = 0
     sample_result = []
     ulog_num = 0
     ulog_span = 0
@@ -20,17 +22,16 @@ def sample(path, field, n, save):
     collection = pd.read_csv(path)
     for i, line in collection.iterrows():
         r = dict()
-        if i != 60:
-            continue
 
         pre_data = pre_handle(line, n, u_span)
-        X, Y = get_points(pre_data[0], pre_data[1], pre_data[2], pre_data[3], u_span)
+        X, Y, expr = get_points(pre_data[0], pre_data[1], pre_data[2], pre_data[3], u_span)
         
 
         r['vars'] = pre_data[1]
         r['X'] = X
         r['Y'] = Y
         r['EQ'] = pre_data[0]
+        r['expr'] = expr
         sample_result.append(r)
 
     res = pd.DataFrame(sample_result)
@@ -79,6 +80,7 @@ def pre_handle(line, n, u_span):
     names = locals()
 
     eq = line['Formula']
+    eq = eq.replace('lg', '1/log(10,2)*log')
     exp = sympy.sympify(eq)
     n_var = line['variables']
     vars = []
@@ -126,10 +128,12 @@ def pre_handle(line, n, u_span):
                     tmp_scope[f'V_{i+1}'][j][1] = sympy.sympify(tmp_scope[f'V_{i+1}'][j][1]).subs(max_s[f'V_{i+1}'])
                     tmp_scope[f'V_{i+1}'][j][0] = sympy.sympify(tmp_scope[f'V_{i+1}'][j][0]).subs(min_s[f'V_{i+1}'])
     v = [np.prod([sympy.log(float(sympy.sympify(tmp_scope[f'V_{i+1}'][j][1]).subs(max_s[f'V_{i+1}']))/float(sympy.sympify(tmp_scope[f'V_{i+1}'][j][0]).subs(min_s[f'V_{i+1}'])),10).evalf() if tmp_scope[f'V_{i+1}'][j][3] == 'ulog' else u_span for j in range(0,n_var)]) for i in range(0,n_v)]
+    v = [abs(a) for a in v]
     n_points = [round(p/sum(v)*n) for p in v]
     return exp, vars, scope, n_points
         
 def get_points(exp, vars, scope, n, u_span):
+    global point_generated
     names = locals()
     n_v = len(n)
     n_var = len(scope['V_1'])
@@ -180,10 +184,12 @@ def get_points(exp, vars, scope, n, u_span):
         Volumn = V
         C = [0] * Volumn
         points = []
+        try_num = 0
         while len(points) < n[i]: 
             error = 0
             #随机选取样点
             loc, point = get_point(i, scope, n_var, u_span)
+            point_generated += 1
 
             #处理limit
             for l in limit:
@@ -194,18 +200,30 @@ def get_points(exp, vars, scope, n, u_span):
                 continue
 
             #处理NAN、INF
-            constant = {G,c,epsilon0,g,h,k,qe,mew0,Bohr,NA,F}
+            constant = {G,c,epsilon0,g,h,k,qe,mew0,Bohr,NA,F,alpha,me}
             exp_c = exp
             for ch in constant:
-                if ch not in vars:
+                if str(ch) not in vars:
                     exp_c = exp_c.subs(str(ch),ch.evalf())
+            expr = exp_c
             try:
                 for j in range(0, n_var):
                     exp_c = exp_c.subs(vars[j], point[j])
             except:
                 raise ValueError("Error calculate!")
             
-            if sympy.sympify(exp_c) == sympy.nan or sympy.sympify(exp_c) == sympy.oo:
+            if sympy.sympify(exp_c).evalf() == sympy.nan or sympy.sympify(exp_c).evalf() == sympy.oo or sympy.sympify(exp_c).evalf() == -sympy.oo \
+                or sympy.sympify(exp_c).evalf() == sympy.zoo or sympy.sympify(exp_c).evalf().has(sympy.I):
+                try_num += 1
+                if try_num ==100*n[i]:
+                    print(exp)
+                    print(sympy.sympify(exp))
+                    print(sympy.sympify(exp.subs(vars[2], point[2])))
+                    print(sympy.sympify(exp_c).evalf())
+                    print(len(Y))
+                    print(n[i],n)
+                    print(vars,point)
+                    raise ValueError("too mang times!")
                 continue
             
 
@@ -217,16 +235,26 @@ def get_points(exp, vars, scope, n, u_span):
             p_m = min(a/sum(C) for a in C)
             p_curr = C[loc]/sum(C)
             p = (p_m + 0.1)/(p_curr + 0.1)
+            random.seed(point_generated)
             if random.uniform(0,1) <= p:
                 points.append(point)
-                Y.append(sympy.sympify(exp_c).evalf())
+                y = sympy.sympify(exp_c).evalf()
+                if y.is_real:
+                    Y.append(sympy.sympify(exp_c).evalf())
+                else:
+                    print(str(exp))
+                    print(vars,point,scope)
+                    print(y)
+                    raise ValueError("Nan y!")
             
         X += points
     
-    return X, Y
+    return X, Y, str(expr)
 
 #限定范围内按分布取一个点
 def get_point(i, scope, n_var, u_span):
+    global point_generated
+    random.seed(point_generated)
     v = [math.ceil(sympy.log(float(sympy.sympify(scope[f'V_{i+1}'][j][1]))/float(sympy.sympify(scope[f'V_{i+1}'][j][0])),10).evalf()) if scope[f'V_{i+1}'][j][3] == 'ulog' else u_span for j in range(0,n_var)]
     v = [(v[j], math.ceil(sympy.log(abs(v[j]),4).evalf())) if (sympy.log(abs(v[j]),4).evalf() > 1 and scope[f'V_{i+1}'][j][3] == 'ulog') else v[j] for j in range(0,n_var)]
     V = np.prod([abs(v[j][1]) if isinstance(v[j],tuple) else abs(v[j]) for j in range(0,n_var)])
@@ -236,23 +264,23 @@ def get_point(i, scope, n_var, u_span):
         max_s = float(sympy.sympify(scope[f'V_{i+1}'][j][1]))
         min_s = float(sympy.sympify(scope[f'V_{i+1}'][j][0]))
         if isinstance(v[j],tuple):
-            V /= v[j][1]
+            V /= abs(v[j][1])
         else:
-            V /= v[j]
+            V /= abs(v[j])
         #print(v,V)
         if scope[f'V_{i+1}'][j][3] == 'ulog':
             s = random.uniform(0,v[j][0]) if isinstance(v[j],tuple) else random.uniform(0,v[j])
             
-            loc += (math.ceil(abs(s)*v[j][1]/v[j][0]) - 1) * V if isinstance(v[j],tuple) else int(abs(s)) * V
+            loc += (math.ceil(s*v[j][1]/v[j][0]) - 1) * V if isinstance(v[j],tuple) else int(abs(s)) * V
             sample_value = sympy.sympify(min_s) * sympy.Pow(10, s)
-            #print(s, sample_value)
+            #print(s, sample_value, loc)
 
             if scope[f'V_{i+1}'][j][2] == 'I':
                 sample_value = int(sample_value)
             elif scope[f'V_{i+1}'][j][2] == 'NI' or scope[f'V_{i+1}'][j][2] == 'AI':
                 raise ValueError("ulog has no NI or AI!")
         elif scope[f'V_{i+1}'][j][3] == 'u' and (scope[f'V_{i+1}'][j][2] == 'I' or scope[f'V_{i+1}'][j][2] == 'NI' or scope[f'V_{i+1}'][j][2] == 'AI'):
-            sample_value = random.randint(min_s, max_s)
+            sample_value = random.randint(min_s, max_s) 
             index = math.ceil((sample_value - min_s) * u_span/(max_s - min_s))
             #print(index,loc)
             loc += (int(index) - 1) * V if index > 0 else 0

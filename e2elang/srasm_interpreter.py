@@ -35,7 +35,7 @@ class SRasmInterpreter:
                 return np.power(lchild, rchild)
 
         def dispatch_unop(op, lchild):
-            if op == E2EUnOp.abs:
+            if op == E2EUnOp.Abs:
                 return np.abs(lchild)
             elif op == E2EUnOp.exp:
                 return np.exp(lchild)

@@ -16,7 +16,7 @@ class E2EBiOp(BinaryOp):
 @unique
 class E2EUnOp(UnaryOp):
     inv = auto()
-    abs = auto()
+    Abs = auto()
     sqrt = auto()
     sin = auto()
     cos = auto()
@@ -55,7 +55,7 @@ binary_op_map = {
 }
 
 unary_op_map = {
-    E2EUnOp.abs: "abs",
+    E2EUnOp.Abs: "Abs",
     E2EUnOp.exp: "exp",
     E2EUnOp.inv: "inv",
     E2EUnOp.sqrt: "sqrt",
@@ -64,9 +64,9 @@ unary_op_map = {
     E2EUnOp.sin: "sin",
     E2EUnOp.cos: "cos",
     E2EUnOp.tan: "tan",
-    E2EUnOp.acos: "arccos",
-    E2EUnOp.asin: "arcsin",
-    E2EUnOp.atan: "arctan",
+    E2EUnOp.acos: "acos",
+    E2EUnOp.asin: "asin",
+    E2EUnOp.atan: "atan",
     E2EUnOp.sinh: "sinh",
     E2EUnOp.cosh: "cosh",
     E2EUnOp.tanh: "tanh"
@@ -81,7 +81,7 @@ real_biop_map = {
 }
 
 real_unop_map = {
-    "abs": E2EUnOp.abs,
+    "Abs": E2EUnOp.Abs,
     "exp": E2EUnOp.exp,
     "inv": E2EUnOp.inv,
     "sqrt": E2EUnOp.sqrt,
@@ -90,9 +90,9 @@ real_unop_map = {
     "sin": E2EUnOp.sin,
     "cos": E2EUnOp.cos,
     "tan": E2EUnOp.tan,
-    "arccos": E2EUnOp.acos,
-    "arcsin": E2EUnOp.asin,
-    "arctan": E2EUnOp.atan,
+    "acos": E2EUnOp.acos,
+    "asin": E2EUnOp.asin,
+    "atan": E2EUnOp.atan,
     "sinh": E2EUnOp.sinh,
     "cosh": E2EUnOp.cosh,
     "tanh": E2EUnOp.tanh
