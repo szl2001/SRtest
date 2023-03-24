@@ -3,7 +3,7 @@ from sympy import *
 import pandas as pd
 import re
 import numpy as np
-from constants import G,c,epsilon0,g,h,k,qe,mew0,NA,F,Bohr
+from constants import G,c,epsilon0,g,h,k,qe,mew0,NA,F,Bohr,alpha,me
 from e2elang.opcode import const_map
 
 def get_features(field, path, save):
@@ -17,10 +17,10 @@ def get_features(field, path, save):
     names = locals()
 
     ops = ['+','-','*','/','**','sqrt','exp','sin','cos','tan','sinh','cosh','tanh','ln','lg','asin','acos','atan', 'abs']
-    const = ['G','c','epsilon0','g','h','k','qe','mew0','NA','F','Bohr', 'pi']
+    const = ['G','c','epsilon0','g','h','k','qe','mew0','NA','F','Bohr', 'pi', 'alpha', 'me']
     collection = pd.read_csv(path)
     if field == "phy":
-        constant = {G,c,epsilon0,g,h,k,qe,mew0,Bohr}
+        constant = {G,c,epsilon0,g,h,k,qe,mew0,Bohr,alpha,me}
     elif field == "che":
         constant = {NA,k,g,h,F}
     elif field == "bio":
@@ -85,6 +85,7 @@ def get_features(field, path, save):
         number_num += sum([1 if isfloat(substr) and substr not in const and substr not in vars else 0 for substr in sub])
 
         for con in const:
+            exp = exp.subs(con, const_map[con])
             if con not in vars and exp.has(const_map[con]):
                 a =  equation.count(con,0,len(equation))
                 #print(equation, a, vars)

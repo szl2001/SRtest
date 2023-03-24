@@ -1,6 +1,6 @@
 from enum import unique, auto
 from exprtree.expr import BinaryOp, UnaryOp, Variable
-from constants import G,c,epsilon0,g,h,k,qe,mew0,NA,F,Bohr
+from constants import G,c,epsilon0,g,h,k,qe,mew0,NA,F,Bohr,alpha,me
 from sympy import pi
 
 
@@ -112,5 +112,7 @@ const_map = {
     "Bohr": Bohr,
     "NA": NA,
     "F": F,
-    "pi": pi
+    "pi": pi,
+    "alpha": alpha,
+    "me": me
 }

@@ -81,7 +81,6 @@ def pre_handle(line, n, u_span):
 
     eq = line['Formula']
     eq = eq.replace('lg', '1/log(10,2)*log')
-    exp = sympy.sympify(eq)
     n_var = line['variables']
     vars = []
     scope = dict()
@@ -130,18 +129,30 @@ def pre_handle(line, n, u_span):
     v = [np.prod([sympy.log(float(sympy.sympify(tmp_scope[f'V_{i+1}'][j][1]).subs(max_s[f'V_{i+1}']))/float(sympy.sympify(tmp_scope[f'V_{i+1}'][j][0]).subs(min_s[f'V_{i+1}'])),10).evalf() if tmp_scope[f'V_{i+1}'][j][3] == 'ulog' else u_span for j in range(0,n_var)]) for i in range(0,n_v)]
     v = [abs(a) for a in v]
     n_points = [round(p/sum(v)*n) for p in v]
-    return exp, vars, scope, n_points
+    return eq, vars, scope, n_points
         
-def get_points(exp, vars, scope, n, u_span):
+def get_points(eq, vars, scope, n, u_span):
     global point_generated
+    
+    exp = sympy.sympify(eq)
     names = locals()
     n_v = len(n)
     n_var = len(scope['V_1'])
     X = []
     Y = []
 
+    expr = exp
+    constant = {G,c,epsilon0,g,h,k,qe,mew0,Bohr,NA,F,alpha,me}
+    
     for j in range(0, int(n_var)):
         names['x'+str(j)] = sympy.Symbol(vars[j])
+
+    for ch in constant:
+        if str(ch) not in vars:
+            expr = expr.subs(str(ch),ch.evalf())
+    
+    for j in range(0, int(n_var)):
+        expr = expr.subs(names['x'+str(j)],f'x{j+1}')
     
     for i in range(0,n_v):
         limit=[]
@@ -200,12 +211,11 @@ def get_points(exp, vars, scope, n, u_span):
                 continue
 
             #处理NAN、INF
-            constant = {G,c,epsilon0,g,h,k,qe,mew0,Bohr,NA,F,alpha,me}
             exp_c = exp
             for ch in constant:
                 if str(ch) not in vars:
                     exp_c = exp_c.subs(str(ch),ch.evalf())
-            expr = exp_c
+
             try:
                 for j in range(0, n_var):
                     exp_c = exp_c.subs(vars[j], point[j])
@@ -294,6 +304,6 @@ def get_point(i, scope, n_var, u_span):
     return loc, point
 
 if __name__ == "__main__":
-    sample('real/phy_.csv', 'phy', 200, 'points/phy.csv')
-    sample('real/bio_.csv', 'bio', 200, 'points/bio.csv')
-    sample('real/che_.csv', 'che', 200, 'points/che.csv')
+    sample('real/phy_.csv', 'phy', 200, 'points/phy_.csv')
+    sample('real/bio_.csv', 'bio', 200, 'points/bio_.csv')
+    sample('real/che_.csv', 'che', 200, 'points/che_.csv')
