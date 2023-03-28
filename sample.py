@@ -420,7 +420,7 @@ def get_points_ran(eq, vars, scope, n, u_span):
             #根据分布概率取点
             y = sympy.sympify(exp_c).evalf()
             if y.is_real:
-                if abs(y) < 1e301:
+                if abs(y) < 1e301 and abs(y) > 0:
                     Y.append(sympy.sympify(exp_c).evalf())
                 else:
                     continue
@@ -468,7 +468,7 @@ def get_point_ran(i, scope, n_var, u_span):
 
 if __name__ == "__main__":
     for field in ("phy", "bio", "che"):
-        sample(f'real/{field}_.csv', field, 1000, f'points/train_{field}1.csv')
+        sample(f'real/{field}_.csv', field, 200, f'points/{field}1.csv')
     #sample('real/phy_.csv', 'phy', 1000, 'points/phy1.csv')
     #sample('real/bio_.csv', 'bio', 1000, 'points/bio1.csv')
     #sample('real/che_.csv', 'che', 1000, 'points/che1.csv')
