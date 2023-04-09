@@ -259,7 +259,7 @@ def get_points(eq, vars, scope, n, u_span):
             if random.uniform(0,1) <= p:
                 y = sympy.sympify(exp_c).evalf()
                 if y.is_real:
-                    if abs(y) < 1e301:
+                    if abs(y) < 1e100:
                         Y.append(sympy.sympify(exp_c).evalf())
                     else:
                         continue
@@ -341,6 +341,8 @@ def get_points_ran(eq, vars, scope, n, u_span):
     for j in range(0, int(n_var)):
         expr = expr.subs(names['x'+str(j)],f'x{j+1}')
     
+    expr = expr.evalf()
+    
     for i in range(0,n_v):
         limit=[]
         max_s = []
@@ -402,25 +404,25 @@ def get_points_ran(eq, vars, scope, n, u_span):
             except:
                 raise ValueError("Error calculate!")
             
+            try_num += 1
+            if try_num ==100*n[i]:
+                print(exp)
+                print(sympy.sympify(exp))
+                print(exp_c)
+                print(sympy.sympify(exp_c).evalf())
+                print(len(Y))
+                print(n[i],n)
+                print(vars,point)
+                raise ValueError("too mang times!")
             if sympy.sympify(exp_c).evalf() == sympy.nan or sympy.sympify(exp_c).evalf() == sympy.oo or sympy.sympify(exp_c).evalf() == -sympy.oo \
                 or sympy.sympify(exp_c).evalf() == sympy.zoo or sympy.sympify(exp_c).evalf().has(sympy.I):
-                try_num += 1
-                if try_num ==100*n[i]:
-                    print(exp)
-                    print(sympy.sympify(exp))
-                    print(sympy.sympify(exp.subs(vars[2], point[2])))
-                    print(sympy.sympify(exp_c).evalf())
-                    print(len(Y))
-                    print(n[i],n)
-                    print(vars,point)
-                    raise ValueError("too mang times!")
                 continue
             
 
             #根据分布概率取点
             y = sympy.sympify(exp_c).evalf()
             if y.is_real:
-                if abs(y) < 1e301 and abs(y) > 0:
+                if abs(y) < 1e101 and abs(y) > 1e-50:
                     Y.append(sympy.sympify(exp_c).evalf())
                 else:
                     continue
@@ -467,8 +469,9 @@ def get_point_ran(i, scope, n_var, u_span):
     return point
 
 if __name__ == "__main__":
-    for field in ("phy", "bio", "che"):
+    for field in (["phy", "bio", "che"]):
         sample(f'real/{field}_.csv', field, 200, f'points/{field}1.csv')
+        sample(f'real/{field}_.csv', field, 1000, f'points/train_{field}1.csv')
     #sample('real/phy_.csv', 'phy', 1000, 'points/phy1.csv')
     #sample('real/bio_.csv', 'bio', 1000, 'points/bio1.csv')
     #sample('real/che_.csv', 'che', 1000, 'points/che1.csv')

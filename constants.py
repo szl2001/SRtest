@@ -326,7 +326,7 @@ class FSC(Constants):
     __slots__ = ()
 
     def _as_mpf_val(self, prec):
-        return mlib.from_float(9.10938356e-28, prec)
+        return mlib.from_float(7.29927007e-3, prec)
 
     def _sympyrepr(self, printer, *args):
         return 'FSC()'
