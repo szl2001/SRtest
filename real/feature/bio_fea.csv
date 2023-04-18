@@ -1,5 +1,6 @@
 ,0
 field,bio
+eq_num,62
 vars_num,"[0, 5, 17, 21, 10, 3, 3, 1, 0, 2]"
 const_num,0
 number_num,145
@@ -23,3 +24,23 @@ sqrt_len,"[3, 2, 0, 2, 1]"
 sqrt_fre,"{'+': 1, '-': 4, '*': 3, '/': 4, '**': 0, 'sqrt': 0, 'exp': 1, 'sin': 0, 'cos': 0, 'tan': 0, 'sinh': 0, 'cosh': 0, 'tanh': 0, 'ln': 0, 'lg': 0, 'asin': 0, 'acos': 0, 'atan': 0, 'abs': 0, 'G': 0, 'c': 0, 'epsilon0': 0, 'g': 0, 'h': 0, 'k': 0, 'qe': 0, 'mew0': 0, 'NA': 0, 'F': 0, 'Bohr': 0, 'pi': 0, 'alpha': 0, 'me': 0, 'const': 2, 'var': 6}"
 **_len,[44]
 **_fre,"{'+': 0, '-': 0, '*': 0, '/': 0, '**': 0, 'sqrt': 0, 'exp': 0, 'sin': 0, 'cos': 0, 'tan': 0, 'sinh': 0, 'cosh': 0, 'tanh': 0, 'ln': 0, 'lg': 0, 'asin': 0, 'acos': 0, 'atan': 0, 'abs': 0, 'G': 0, 'c': 0, 'epsilon0': 0, 'g': 0, 'h': 0, 'k': 0, 'qe': 0, 'mew0': 0, 'NA': 0, 'F': 0, 'Bohr': 0, 'pi': 0, 'alpha': 0, 'me': 0, 'const': 39, 'var': 5}"
++_num_max,5
+-_num_max,7
+*_num_max,12
+/_num_max,3
+**_num_max,3
+sqrt_num_max,1
+exp_num_max,2
+sin_num_max,0
+cos_num_max,0
+tan_num_max,0
+sinh_num_max,0
+cosh_num_max,0
+tanh_num_max,0
+ln_num_max,2
+lg_num_max,2
+asin_num_max,0
+acos_num_max,0
+atan_num_max,0
+abs_num_max,0
+pow_max,5

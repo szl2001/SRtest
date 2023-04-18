@@ -34,6 +34,7 @@ def get_features(field, path, save):
     vars_num = [0]
     biop_coff = []
     unop_coff = []
+    pow_max = 0
     fre = dict.fromkeys(ops+const,0)
     number_num = 0
 
@@ -41,7 +42,11 @@ def get_features(field, path, save):
     for n in ana:
         names[n+'_fre'] = dict.fromkeys(ops+const+['const', 'var'],0)
         names[n+'_len'] = [0]
+        names[n+'_num_max'] = 0
     sample_dis = dict(ulog=0, u=0)
+
+    for n in ops:
+        names[n+'_num_max'] = 0
 
     for i, line in collection.iterrows():
         """表达式赋值"""
@@ -68,6 +73,8 @@ def get_features(field, path, save):
             else:
                 a =  equation.count(op,0,len(equation))
             fre[op] += a
+            if a > names[op+'_num_max']:
+                names[op+'_num_max'] = a
             l += a
             if op in ops[0:5]:
                 bi += a
@@ -160,6 +167,8 @@ def get_features(field, path, save):
                 else:
                     ana_len = 0
                     names[n+'_fre']['const'] += 1
+                    if n == '**' and pow_max < sympify(substr[1:ind]):
+                        pow_max = sympify(substr[1:ind])
                 
                 if ana_len >= len(names[n+'_len']):
                     names[n+'_len'] += [0] * (ana_len-len(names[n+'_len']))
@@ -180,6 +189,7 @@ def get_features(field, path, save):
 
     result = dict()
     result['field'] = field
+    result['eq_num'] = len(collection)
     result['vars_num'] = vars_num
     result['const_num'] = const_num
     result['number_num'] = number_num
@@ -197,11 +207,127 @@ def get_features(field, path, save):
     for n in ana:
         result[n+'_len'] = names[n+'_len']
         result[n+'_fre'] = names[n+'_fre']
+    for n in ops:
+        result[n+'_num_max'] = names[n+'_num_max']
+    
+    result['pow_max'] = pow_max
 
     print(result)
     res = pd.Series(result).to_frame()
     print(res)
     res.to_csv(save)
+
+def get_features_eq(eq):
+    features = dict()
+    ops = ['**','sqrt','exp','sin','cos','tan','sinh','cosh','tanh','ln','lg','asin','acos','atan', 'abs']
+    #exp = sympy.sympify(eq)
+    print(eq)
+    
+    try:
+        """number of variables"""
+        if eq.find('X') >= 0:
+            var_x = 'X'
+        elif eq.find('x_') >= 0:
+            var_x = 'x_'
+        elif eq.find('x[') >= 0:
+            var_x = 'x['
+        elif eq.find('x') >= 0 or sympify(eq).is_real:
+            var_x = 'x'
+        else:
+            var_x = 'x'
+            print(eq)
+        #raise ValueError('Undefine x!\n')
+    except:
+        eq = eq.replace('|', '')
+        if eq.find('aq') >= 0:
+            eq = eq.replace('aq', '/')
+        if eq.find('plog') >= 0:
+            eq = eq.replace('plog', 'log')
+
+        if eq.find('X') >= 0:
+            var_x = 'X'
+        elif eq.find('x_') >= 0:
+            var_x = 'x_'
+        elif eq.find('x[') >= 0:
+            var_x = 'x['
+        elif eq.find('x') >= 0 or sympify(eq).is_real:
+            var_x = 'x'
+        else:
+            var_x = 'x'
+            print(eq)
+    
+    var_num = 0
+    var = set()
+    for substr in eq.split(var_x)[1:]:
+        if substr[0].isdigit() and (len(substr) == 1 or not substr[1].isdigit()):
+            var.add(var_x + substr[0] if var_x != 'x[' else var_x + substr[0] + ']')
+    
+    var_num = len(var)
+    if var_x != 'x':
+        for i in range(var_num):
+            eq = eq.replace(list(var)[i], f'x{i}')
+
+    features['var_num'] = var_num
+
+    if eq.find('[') >= 0 or eq.find(']'):
+        eq = eq.replace('[', '(')
+        eq = eq.replace(']', ')')
+    
+    """op"""
+    ana = ['exp', 'lg', 'ln','sqrt','**']
+    for n in ops:
+        if n in ana:
+            features[n+'_var'] = False
+            if n == "**":
+                features[n+'_max'] = 0
+            if eq.find(n) >= 0:
+                features[n+'_num'] = len(eq.split(n)) - 1
+                for substr in eq.split(n)[1:]:
+                    ind = 0
+                    if substr[0] != '(':
+                        for op in ops:
+                            substr = str.split(substr, op)[0]
+                        substr = str.split(substr, ')')[0]
+                        substr = str.split(substr, ']')[0]
+                        substr = '$' + substr 
+                        ind = len(substr)
+                    else:
+                        r = 0
+                        for ch in substr:
+                            if ch == '(':
+                                r += 1
+                            elif ch == ')':
+                                r -= 1
+
+                            if r == 0:
+                                break
+                            else:
+                                ind += 1
+                    print(n)
+                    print(substr, substr[1:ind])
+                    print(eq)
+                    try:
+                        if not substr[ind-1] in ops + ['(', ')']:
+                            sympify(substr[1:ind])
+                    except:
+                        return None
+                    if substr[ind-1] in ops + ['(', ')']  or not sympify(substr[1:ind]).is_real:
+                        features[n+'_var'] = True
+                        break
+                    elif n == "**" and sympify(substr[1:ind]) > features[n+'_max']:
+                        features[n+'_max'] = sympify(substr[1:ind])
+
+            else:
+                features[n+'_num'] = 0
+        else:
+            if n == '*':
+                features[n+'_num'] = eq.count(n,0,len(eq)) - 2*eq.count('**',0,len(eq))
+            elif n in ops[3:6]:
+                features[n+'_num'] = eq.count(n,0,len(eq)) - eq.count(ops[ops.index(n)+3],0,len(eq)) - eq.count(ops[ops.index(n)+8],0,len(eq))
+            else:
+                features[n+'_num'] =  eq.count(n,0,len(eq))
+
+    return features
 
 if __name__ == "__main__":
     get_features('phy','real/phy_.csv','real/feature/phy_fea.csv')
